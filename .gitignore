@@ -1,0 +1,5 @@
+reports/选股错误日志.txt
+__pycache__/
+*.pyc
+*.spec
+*.exe
