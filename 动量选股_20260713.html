@@ -1,0 +1,1201 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>动量选股 2026-07-13</title>
+<style>
+:root{
+  --bg:#0a0e17; --bg2:#101624; --bg3:#161d2f;
+  --card:#131b2b; --card2:#182233;
+  --bd:#1e2a3d; --bd2:#2a3a55;
+  --text:#e2e8f0; --text2:#8892a8; --text3:#4a5a78;
+  --red:#e53935; --red10:rgba(229,57,53,.12); --red20:rgba(229,57,53,.35);
+  --green:#00c853; --green10:rgba(0,200,83,.12); --green20:rgba(0,200,83,.35);
+  --amber:#ffb74d; --amber10:rgba(255,183,77,.12); --amber20:rgba(255,183,77,.35);
+  --blue:#2962ff; --blue10:rgba(41,98,255,.12);
+  --r:14px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+.pd{max-width:440px;margin:0 auto;padding:0 0 60px}
+
+/* 顶部通栏 */
+.hero{background:linear-gradient(135deg,#111b35 0%,#0d1521 50%,#0a0e17 100%);padding:24px 18px 20px;position:relative;overflow:hidden}
+.hero::after{content:'';position:absolute;top:-60px;right:-40px;width:200px;height:200px;background:radial-gradient(circle,rgba(41,98,255,.1) 0%,transparent 70%);pointer-events:none}
+.hero-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.hero-logo{display:flex;align-items:center;gap:10px}
+.hero-logo-i{width:38px;height:38px;background:linear-gradient(135deg,#2962ff,#6200ea);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;color:#fff}
+.hero-logo-t{font-size:18px;font-weight:700}
+.hero-logo-s{font-size:11px;color:var(--text2)}
+.hero-date{font-size:11px;color:var(--text2);background:var(--blue10);padding:4px 10px;border-radius:8px;border:1px solid var(--bd)}
+.hero-mkt{display:flex;align-items:center;gap:14px;margin-top:4px}
+.hero-mkt-v{font-size:28px;font-weight:800}
+.hero-mkt-d{font-size:12px;color:var(--text2)}
+.tb{flex:1;height:4px;border-radius:2px;background:linear-gradient(90deg,var(--green),var(--amber),var(--red));position:relative;margin:6px 0}
+.tbp{position:absolute;top:-3px;width:10px;height:10px;background:#fff;border-radius:50%;box-shadow:0 0 6px rgba(255,255,255,.5);transition:left .5s ease}
+
+/* 统计卡片网格 */
+.sg{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:14px 16px}
+.sg-item{background:var(--card);border:1px solid var(--bd);border-radius:var(--r);padding:12px 14px;text-align:center}
+.sg-lb{font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}
+.sg-vl{font-size:22px;font-weight:800;font-family:'SF Mono','Consolas',monospace}
+.sg-sub{font-size:10px;color:var(--text2);margin-top:2px}
+
+/* TOP1 */
+.tp{display:flex;align-items:center;gap:10px;background:linear-gradient(135deg,rgba(229,57,53,.08),rgba(229,57,53,.02));border:1px solid var(--red20);border-radius:var(--r);padding:12px 16px;margin:0 16px 8px;cursor:pointer}
+.tp-bg{background:linear-gradient(135deg,#e53935,#ff6f00);color:#fff;padding:3px 10px;border-radius:6px;font-size:11px;font-weight:700}
+.tp-i{display:flex;flex-direction:column}
+.tp-n{font-size:15px;font-weight:700}
+.tp-c{font-size:10px;color:var(--text2);font-family:monospace}
+.tp-s{font-size:26px;font-weight:800;font-family:monospace;margin-left:auto}
+.tp-g{background:var(--red10);color:var(--red);padding:3px 8px;border-radius:6px;font-size:12px;font-weight:600}
+.tp-p{font-size:14px;color:var(--text2);font-family:monospace}
+
+/* Tab 栏 */
+.tabs{display:flex;padding:0 16px;gap:4px;margin:10px 0 6px;position:sticky;top:0;z-index:10;background:var(--bg);padding-top:6px}
+.tab{flex:1;text-align:center;padding:8px 0;font-size:13px;font-weight:600;color:var(--text2);border-bottom:2px solid transparent;cursor:pointer;transition:all .2s}
+.tab.on{color:var(--blue);border-color:var(--blue)}
+.tab .badge{display:inline-block;font-size:10px;padding:1px 6px;border-radius:4px;margin-left:4px;font-weight:700}
+.tab.on .badge.buy{background:var(--red10);color:var(--red)}
+.tab.on .badge.hold{background:var(--amber10);color:var(--amber)}
+
+.panel{display:none;padding:0 14px}
+.panel.on{display:block}
+
+/* 股票卡片 */
+.sc{background:var(--card);border:1px solid var(--bd);border-radius:var(--r);padding:14px;margin-bottom:8px;animation:si .4s ease forwards;opacity:0;animation-delay:var(--dly,0s)}
+@keyframes si{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.sc-top{display:flex;gap:12px}
+.sc-left{flex-shrink:0}
+.sc-info{flex:1;min-width:0}
+.sc-hd{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:6px}
+.sc-code{font-size:11px;color:var(--text2);font-family:monospace;background:var(--bg2);padding:1px 5px;border-radius:4px}
+.sc-name{font-size:16px;font-weight:700}
+.sc-sg{font-size:11px;padding:2px 8px;border-radius:5px;font-weight:600;border:1px solid}
+.sc-pr{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+.sc-pv{font-size:22px;font-weight:700;font-family:monospace}
+.sc-pc{font-size:14px;font-weight:700;font-family:monospace}
+.sc-chip{font-size:10px;padding:2px 6px;border-radius:4px;background:var(--bg2);color:var(--text2);border:1px solid var(--bd)}
+.sc-bar{}
+.db{display:flex;align-items:center;gap:6px;margin:2px 0}
+.dl{width:32px;font-size:10px;color:var(--text2);flex-shrink:0}
+.dt{flex:1;height:6px;background:var(--bg3);border-radius:3px;overflow:hidden}
+.df{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--blue),#5c8aff);transition:width .5s ease;min-width:2px}
+.dv{width:20px;font-size:10px;color:var(--text2);text-align:right;font-family:monospace}
+
+.sc-bot{display:grid;grid-template-columns:auto 1fr;gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid var(--bd)}
+.sc-m{display:flex;align-items:center;justify-content:center}
+.sc-ch{display:flex;align-items:center}
+.sc-mets{display:grid;grid-template-columns:repeat(5,1fr);gap:2px}
+.sc-mt{text-align:center}
+.sc-mt span{display:block;font-size:9px;color:var(--text2)}
+.sc-mt span:last-child{font-size:12px;font-weight:700;color:var(--text);font-family:monospace;margin-top:1px}
+
+/* 推文面板 */
+.tp-box{background:var(--card);border:1px solid var(--bd);border-radius:var(--r);padding:16px;margin:0 14px}
+.tp-ttl{font-size:13px;font-weight:700;color:var(--blue);margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.tp-btn{margin-left:auto;background:var(--blue10);color:var(--blue);border:1px solid var(--bd);padding:3px 10px;border-radius:5px;font-size:11px;cursor:pointer}
+.tp-cnt{font-size:12px;line-height:1.7;color:var(--text2);white-space:pre-wrap;font-family:monospace}
+
+/* 底部 */
+.ft{text-align:center;padding:24px 16px;color:var(--text3);font-size:11px;border-top:1px solid var(--bd);margin-top:16px}
+
+/* 空状态 */
+.empty{text-align:center;padding:40px;color:var(--text3);font-size:13px}
+</style>
+</head>
+<body>
+<div class="pd">
+
+<!-- Hero -->
+<div class="hero">
+  <div class="hero-top">
+    <div class="hero-logo">
+      <div class="hero-logo-i">Q</div>
+      <div>
+        <div class="hero-logo-t">动量选股系统</div>
+        <div class="hero-logo-s">五维模型 · 每日收盘</div>
+      </div>
+    </div>
+    <div class="hero-date">2026-07-13</div>
+  </div>
+  <div class="hero-mkt">
+    <div class="hero-mkt-v" style="color:#00c853">市场偏弱</div>
+    <div class="hero-mkt-d">控制仓位注意风险 · 均分44</div>
+  </div>
+  <div class="tb"><div class="tbp" style="left:44%"></div></div>
+</div>
+
+<!-- Stats Grid -->
+<div class="sg">
+  <div class="sg-item"><div class="sg-lb">买入信号</div><div class="sg-vl" style="color:var(--red)">2</div><div class="sg-sub">股票1 ETF1</div></div>
+  <div class="sg-item"><div class="sg-lb">持有/观望</div><div class="sg-vl" style="color:var(--amber)">4</div><div class="sg-sub">股票3 ETF1</div></div>
+  <div class="sg-item"><div class="sg-lb">注意/回避</div><div class="sg-vl" style="color:var(--green)">14</div><div class="sg-sub">股票6 ETF8</div></div>
+  <div class="sg-item"><div class="sg-lb">覆盖</div><div class="sg-vl" style="color:var(--blue)">20</div><div class="sg-sub">股票10 ETF10</div></div>
+</div>
+
+
+<div class="tp" onclick="window.location.hash='stock'">
+  <div class="tp-bg">TOP1</div>
+  <div class="tp-i"><span class="tp-n">中芯国际</span><span class="tp-c">688981</span></div>
+  <div class="tp-s" style="color:#e53935">81</div>
+  <div class="tp-g">强烈买入</div>
+  <div class="tp-p">168.09</div>
+</div>
+
+<!-- Tabs -->
+<div class="tabs">
+  <div class="tab on" data-tab="stock" onclick="switchTab('stock')">股票 <span class="badge buy" style="background:var(--red10);color:var(--red)">10</span></div>
+  <div class="tab" data-tab="etf" onclick="switchTab('etf')">ETF <span class="badge hold" style="background:var(--amber10);color:var(--amber)">10</span></div>
+  <div class="tab" data-tab="tweet" onclick="switchTab('tweet')">推文</div>
+</div>
+
+<!-- Stock Panel -->
+<div id="panel-stock" class="panel on">
+<div class="sc" style="--dly:0.0s">
+  <div class="sc-top">
+    <div class="sc-left">
+      <svg width="48" height="48" viewBox="0 0 48 48">
+  <circle cx="24.0" cy="24.0" r="20.0" fill="none" stroke="#1e2434" stroke-width="4"/>
+  <circle cx="24.0" cy="24.0" r="20.0" fill="none" stroke="#e53935" stroke-width="4"
+    stroke-dasharray="101.8 125.7" stroke-linecap="round"
+    transform="rotate(-90 24.0 24.0)"/>
+  <text x="24.0" y="23.0" text-anchor="middle" dominant-baseline="middle" fill="#e53935" font-size="18" font-weight="700" font-family="monospace">81</text>
+</svg>
+    </div>
+    <div class="sc-info">
+      <div class="sc-hd">
+        <span class="sc-code">688981</span>
+        <span class="sc-name">中芯国际</span>
+        <span class="sc-sg" style="background:var(--red10);color:var(--red);border-color:var(--red20)">强烈买入</span>
+      </div>
+      <div class="sc-pr">
+        <span class="sc-pv">168.09</span>
+        <span class="sc-pc" style="color:#e53935">+3.11%</span>
+        <span class="sc-chip">多头排列</span>
+        <span class="sc-chip">量0.97</span>
+        <span class="sc-chip">R63</span>
+      </div>
+      <div class="sc-bar"><div class="db"><span class="dl">价格</span><div class="dt"><div class="df" style="width:100%"></div></div><span class="dv">30</span></div><div class="db"><span class="dl">量能</span><div class="dt"><div class="df" style="width:40%"></div></div><span class="dv">8</span></div><div class="db"><span class="dl">趋势</span><div class="dt"><div class="df" style="width:100%"></div></div><span class="dv">25</span></div><div class="db"><span class="dl">强度</span><div class="dt"><div class="df" style="width:87%"></div></div><span class="dv">13</span></div><div class="db"><span class="dl">风控</span><div class="dt"><div class="df" style="width:50%"></div></div><span class="dv">5</span></div></div>
+    </div>
+  </div>
+  <div class="sc-bot">
+    <div class="sc-m"><svg width="40" height="40" viewBox="0 0 40 40">
+  <circle cx="20.0" cy="20.0" r="16.0" fill="none" stroke="#1e2434" stroke-width="4"/>
+  <circle cx="20.0" cy="20.0" r="16.0" fill="none" stroke="#e53935" stroke-width="4"
+    stroke-dasharray="81.4 100.5" stroke-linecap="round"
+    transform="rotate(-90 20.0 20.0)"/>
+  <text x="20.0" y="19.0" text-anchor="middle" dominant-baseline="middle" fill="#e53935" font-size="18" font-weight="700" font-family="monospace">81</text>
+</svg></div>
+    <div class="sc-ch"><svg width="120" height="32" viewBox="0 0 120 32" style="display:block">
+  <polygon points="0,32 0.0,25.4 4.1,25.4 8.3,24.4 12.4,23.9 16.6,28.6 20.7,32.0 24.8,28.6 29.0,29.9 33.1,28.6 37.2,30.1 41.4,26.6 45.5,26.9 49.7,24.0 53.8,20.2 57.9,17.2 62.1,19.6 66.2,13.5 70.3,10.1 74.5,15.2 78.6,13.8 82.8,8.9 86.9,11.6 91.0,18.1 95.2,20.5 99.3,18.2 103.4,17.3 107.6,13.1 111.7,0.0 115.9,6.3 120.0,3.1 120,32" fill="#e5393533"/>
+  <polyline points="0.0,25.4 4.1,25.4 8.3,24.4 12.4,23.9 16.6,28.6 20.7,32.0 24.8,28.6 29.0,29.9 33.1,28.6 37.2,30.1 41.4,26.6 45.5,26.9 49.7,24.0 53.8,20.2 57.9,17.2 62.1,19.6 66.2,13.5 70.3,10.1 74.5,15.2 78.6,13.8 82.8,8.9 86.9,11.6 91.0,18.1 95.2,20.5 99.3,18.2 103.4,17.3 107.6,13.1 111.7,0.0 115.9,6.3 120.0,3.1" fill="none" stroke="#e53935" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="120.0" cy="3.1" r="2.5" fill="#e53935"/>
+</svg></div>
+    <div class="sc-mets">
+      <div class="sc-mt"><span>15日</span><span style="color:#e53935">+15.5%</span></div>
+      <div class="sc-mt"><span>45日</span><span style="color:#e53935">+39.7%</span></div>
+      <div class="sc-mt"><span>支撑</span><span>145.42</span></div>
+      <div class="sc-mt"><span>压力</span><span>173.0</span></div>
+      <div class="sc-mt"><span>回撤</span><span>-2.8%</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="sc" style="--dly:0.06s">
+  <div class="sc-top">
+    <div class="sc-left">
+      <svg width="48" height="48" viewBox="0 0 48 48">
+  <circle cx="24.0" cy="24.0" r="20.0" fill="none" stroke="#1e2434" stroke-width="4"/>
+  <circle cx="24.0" cy="24.0" r="20.0" fill="none" stroke="#ffb74d" stroke-width="4"
+    stroke-dasharray="84.2 125.7" stroke-linecap="round"
+    transform="rotate(-90 24.0 24.0)"/>
+  <text x="24.0" y="23.0" text-anchor="middle" dominant-baseline="middle" fill="#ffb74d" font-size="18" font-weight="700" font-family="monospace">67</text>
+</svg>
+    </div>
+    <div class="sc-info">
+      <div class="sc-hd">
+        <span class="sc-code">000333</span>
+        <span class="sc-name">美的集团</span>
+        <span class="sc-sg" style="background:var(--amber10);color:var(--amber);border-color:var(--amber20)">持有</span>
+      </div>
+      <div class="sc-pr">
+        <span class="sc-pv">80.16</span>
+        <span class="sc-pc" style="color:#e53935">+1.48%</span>
+        <span class="sc-chip">多头排列</span>
+        <span class="sc-chip">量0.70</span>
+        <span class="sc-chip">R60</span>
+      </div>
+      <div class="sc-bar"><div class="db"><span class="dl">价格</span><div class="dt"><div class="df" style="width:60%"></div></div><span class="dv">18</span></div><div class="db"><span class="dl">量能</span><div class="dt"><div class="df" style="width:45%"></div></div><span class="dv">9</span></div><div class="db"><span class="dl">趋势</span><div class="dt"><div class="df" style="width:88%"></div></div><span class="dv">22</span></div><div class="db"><span class="dl">强度</span><div class="dt"><div class="df" style="width:87%"></div></div><span class="dv">13</span></div><div class="db"><span class="dl">风控</span><div class="dt"><div class="df" style="width:50%"></div></div><span class="dv">5</span></div></div>
+    </div>
+  </div>
+  <div class="sc-bot">
+    <div class="sc-m"><svg width="40" height="40" viewBox="0 0 40 40">
+  <circle cx="20.0" cy="20.0" r="16.0" fill="none" stroke="#1e2434" stroke-width="4"/>
+  <circle cx="20.0" cy="20.0" r="16.0" fill="none" stroke="#ffb74d" stroke-width="4"
+    stroke-dasharray="67.4 100.5" stroke-linecap="round"
+    transform="rotate(-90 20.0 20.0)"/>
+  <text x="20.0" y="19.0" text-anchor="middle" dominant-baseline="middle" fill="#ffb74d" font-size="18" font-weight="700" font-family="monospace">67</text>
+</svg></div>
+    <div class="sc-ch"><svg width="120" height="32" viewBox="0 0 120 32" style="display:block">
+  <polygon points="0,32 0.0,13.2 4.1,9.9 8.3,9.9 12.4,10.6 16.6,13.2 20.7,9.0 24.8,10.8 29.0,5.2 33.1,0.0 37.2,7.7 41.4,16.0 45.5,23.1 49.7,22.2 53.8,26.6 57.9,25.6 62.1,26.3 66.2,31.5 70.3,32.0 74.5,24.6 78.6,15.8 82.8,22.0 86.9,15.3 91.0,16.7 95.2,13.3 99.3,5.9 103.4,9.1 107.6,8.0 111.7,8.3 115.9,9.5 120.0,5.3 120,32" fill="#e5393533"/>
+  <polyline points="0.0,13.2 4.1,9.9 8.3,9.9 12.4,10.6 16.6,13.2 20.7,9.0 24.8,10.8 29.0,5.2 33.1,0.0 37.2,7.7 41.4,16.0 45.5,23.1 49.7,22.2 53.8,26.6 57.9,25.6 62.1,26.3 66.2,31.5 70.3,32.0 74.5,24.6 78.6,15.8 82.8,22.0 86.9,15.3 91.0,16.7 95.2,13.3 99.3,5.9 103.4,9.1 107.6,8.0 111.7,8.3 115.9,9.5 120.0,5.3" fill="none" stroke="#e53935" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="120.0" cy="5.3" r="2.5" fill="#e53935"/>
+</svg></div>
+    <div class="sc-mets">
+      <div class="sc-mt"><span>15日</span><span style="color:#e53935">+7.5%</span></div>
+      <div class="sc-mt"><span>45日</span><span style="color:#e53935">+4.5%</span></div>
+      <div class="sc-mt"><span>支撑</span><span>78.99</span></div>
+      <div class="sc-mt"><span>压力</span><span>80.16</span></div>
+      <div class="sc-mt"><span>回撤</span><span>-0.0%</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="sc" style="--dly:0.12s">
+  <div class="sc-top">
+    <div class="sc-left">
+      <svg width="48" height="48" viewBox="0 0 48 48">
+  <circle cx="24.0" cy="24.0" r="20.0" fill="none" stroke="#1e2434" stroke-width="4"/>
+  <circle cx="24.0" cy="24.0" r="20.0" fill="none" stroke="#ffb74d" stroke-width="4"
+    stroke-dasharray="76.7 125.7" stroke-linecap="round"
+    transform="rotate(-90 24.0 24.0)"/>
+  <text x="24.0" y="23.0" text-anchor="middle" dominant-baseline="middle" fill="#ffb74d" font-size="18" font-weight="700" font-family="monospace">61</text>
+</svg>
+    </div>
+    <div class="sc-info">
+      <div class="sc-hd">
+        <span class="sc-code">600900</span>
+        <span class="sc-name">长江电力</span>
+        <span class="sc-sg" style="background:var(--amber10);color:var(--amber);border-color:var(--amber20)">持有</span>
+      </div>
+      <div class="sc-pr">
+        <span class="sc-pv">28.18</span>
+        <span class="sc-pc" style="color:#e53935">+0.54%</span>
+        <span class="sc-chip">多头排列</span>
+        <span class="sc-chip">量1.01</span>
+        <span class="sc-chip">R65</span>
+      </div>
+      <div class="sc-bar"><div class="db"><span class="dl">价格</span><div class="dt"><div class="df" style="width:50%"></div></div><span class="dv">15</span></div><div class="db"><span class="dl">量能</span><div class="dt"><div class="df" style="width:55%"></div></div><span class="dv">11</span></div><div class="db"><span class="dl">趋势</span><div class="dt"><div class="df" style="width:88%"></div></div><span class="dv">22</span></div><div class="db"><span class="dl">强度</span><div class="dt"><div class="df" style="width:53%"></div></div><span class="dv">8</span></div><div class="db"><span class="dl">风控</span><div class="dt"><div class="df" style="width:50%"></div></div><span class="dv">5</span></div></div>
+    </div>
+  </div>
+  <div class="sc-bot">
+    <div class="sc-m"><svg width="40" height="40" viewBox="0 0 40 40">
+  <circle cx="20.0" cy="20.0" r="16.0" fill="none" stroke="#1e2434" stroke-width="4"/>
+  <circle cx="20.0" cy="20.0" r="16.0" fill="none" stroke="#ffb74d" stroke-width="4"
+    stroke-dasharray="61.3 100.5" stroke-linecap="round"
+    transform="rotate(-90 20.0 20.0)"/>
+  <text x="20.0" y="19.0" text-anchor="middle" dominant-baseline="middle" fill="#ffb74d" font-size="18" font-weight="700" font-family="monospace">61</text>
+</svg></div>
+    <div class="sc-ch"><svg width="120" height="32" viewBox="0 0 120 32" style="display:block">
+  <polygon points="0,32 0.0,7.9 4.1,5.0 8.3,6.1 12.4,8.7 16.6,10.4 20.7,12.0 24.8,10.1 29.0,9.2 33.1,6.1 37.2,0.0 41.4,11.0 45.5,16.9 49.7,19.9 53.8,25.2 57.9,20.8 62.1,21.9 66.2,26.1 70.3,32.0 74.5,25.3 78.6,22.4 82.8,28.1 86.9,25.5 91.0,20.7 95.2,19.1 99.3,16.9 103.4,13.5 107.6,7.0 111.7,7.9 115.9,3.9 120.0,1.6 120,32" fill="#e5393533"/>
+  <polyline points="0.0,7.9 4.1,5.0 8.3,6.1 12.4,8.7 16.6,10.4 20.7,12.0 24.8,10.1 29.0,9.2 33.1,6.1 37.2,0.0 41.4,11.0 45.5,16.9 49.7,19.9 53.8,25.2 57.9,20.8 62.1,21.9 66.2,26.1 70.3,32.0 74.5,25.3 78.6,22.4 82.8,28.1 86.9,25.5 91.0,20.7 95.2,19.1 99.3,16.9 103.4,13.5 107.6,7.0 111.7,7.9 115.9,3.9 120.0,1.6" fill="none" stroke="#e53935" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="120.0" cy="1.6" r="2.5" fill="#e53935"/>
+</svg></div>
+    <div class="sc-mets">
+      <div class="sc-mt"><span>15日</span><span style="color:#e53935">+4.6%</span></div>
+      <div class="sc-mt"><span>45日</span><span style="color:#e53935">+4.4%</span></div>
+      <div class="sc-mt"><span>支撑</span><span>27.41</span></div>
+      <div class="sc-mt"><span>压力</span><span>28.18</span></div>
+      <div class="sc-mt"><span>回撤</span><span>-0.0%</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="sc" style="--dly:0.18s">
+  <div class="sc-top">
+    <div class="sc-left">
+      <svg width="48" height="48" viewBox="0 0 48 48">
+  <circle cx="24.0" cy="24.0" r="20.0" fill="none" stroke="#1e2434" stroke-width="4"/>
+  <circle cx="24.0" cy="24.0" r="20.0" fill="none" stroke="#ffb74d" stroke-width="4"
+    stroke-dasharray="64.1 125.7" stroke-linecap="round"
+    transform="rotate(-90 24.0 24.0)"/>
+  <text x="24.0" y="23.0" text-anchor="middle" dominant-baseline="middle" fill="#ffb74d" font-size="18" font-weight="700" font-family="monospace">51</text>
+</svg>
+    </div>
+    <div class="sc-info">
+      <div class="sc-hd">
+        <span class="sc-code">002594</span>
+        <span class="sc-name">比亚迪</span>
+        <span class="sc-sg" style="background:var(--amber10);color:var(--amber);border-color:var(--amber20)">观望</span>
+      </div>
+      <div class="sc-pr">
+        <span class="sc-pv">87.38</span>
+        <span class="sc-pc" style="color:#00c853">-2.91%</span>
+        <span class="sc-chip">多头排列</span>
+        <span class="sc-chip">量0.85</span>
+        <span class="sc-chip">R49</span>
+      </div>
+      <div class="sc-bar"><div class="db"><span class="dl">价格</span><div class="dt"><div class="df" style="width:13%"></div></div><span class="dv">4</span></div><div class="db"><span class="dl">量能</span><div class="dt"><div class="df" style="width:75%"></div></div><span class="dv">15</span></div><div class="db"><span class="dl">趋势</span><div class="dt"><div class="df" style="width:68%"></div></div><span class="dv">17</span></div><div class="db"><span class="dl">强度</span><div class="dt"><div class="df" style="width:67%"></div></div><span class="dv">10</span></div><div class="db"><span class="dl">风控</span><div class="dt"><div class="df" style="width:50%"></div></div><span class="dv">5</span></div></div>
+    </div>
+  </div>
+  <div class="sc-bot">
+    <div class="sc-m"><svg width="40" height="40" viewBox="0 0 40 40">
+  <circle cx="20.0" cy="20.0" r="16.0" fill="none" stroke="#1e2434" stroke-width="4"/>
+  <circle cx="20.0" cy="20.0" r="16.0" fill="none" stroke="#ffb74d" stroke-width="4"
+    stroke-dasharray="51.3 100.5" stroke-linecap="round"
+    transform="rotate(-90 20.0 20.0)"/>
+  <text x="20.0" y="19.0" text-anchor="middle" dominant-baseline="middle" fill="#ffb74d" font-size="18" font-weight="700" font-family="monospace">51</text>
+</svg></div>
+    <div class="sc-ch"><svg width="120" height="32" viewBox="0 0 120 32" style="display:block">
+  <polygon points="0,32 0.0,5.4 4.1,0.0 8.3,3.3 12.4,5.7 16.6,6.5 20.7,9.6 24.8,8.4 29.0,11.1 33.1,12.0 37.2,8.9 41.4,10.2 45.5,12.3 49.7,16.0 53.8,14.9 57.9,15.8 62.1,20.3 66.2,23.2 70.3,25.1 74.5,32.0 78.6,29.5 82.8,29.4 86.9,27.8 91.0,22.7 95.2,14.3 99.3,15.9 103.4,18.1 107.6,15.4 111.7,17.1 115.9,11.7 120.0,16.2 120,32" fill="#00c85333"/>
+  <polyline points="0.0,5.4 4.1,0.0 8.3,3.3 12.4,5.7 16.6,6.5 20.7,9.6 24.8,8.4 29.0,11.1 33.1,12.0 37.2,8.9 41.4,10.2 45.5,12.3 49.7,16.0 53.8,14.9 57.9,15.8 62.1,20.3 66.2,23.2 70.3,25.1 74.5,32.0 78.6,29.5 82.8,29.4 86.9,27.8 91.0,22.7 95.2,14.3 99.3,15.9 103.4,18.1 107.6,15.4 111.7,17.1 115.9,11.7 120.0,16.2" fill="none" stroke="#00c853" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="120.0" cy="16.2" r="2.5" fill="#00c853"/>
+</svg></div>
+    <div class="sc-mets">
+      <div class="sc-mt"><span>15日</span><span style="color:#00c853">-0.2%</span></div>
+      <div class="sc-mt"><span>45日</span><span style="color:#00c853">-12.6%</span></div>
+      <div class="sc-mt"><span>支撑</span><span>86.26</span></div>
+      <div class="sc-mt"><span>压力</span><span>90.0</span></div>
+      <div class="sc-mt"><span>回撤</span><span>-3.8%</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="sc" style="--dly:0.24s">
+  <div class="sc-top">
+    <div class="sc-left">
+      <svg width="48" height="48" viewBox="0 0 48 48">
+  <circle cx="24.0" cy="24.0" r="20.0" fill="none" stroke="#1e2434" stroke-width="4"/>
+  <circle cx="24.0" cy="24.0" r="20.0" fill="none" stroke="#00c853" stroke-width="4"
+    stroke-dasharray="52.8 125.7" stroke-linecap="round"
+    transform="rotate(-90 24.0 24.0)"/>
+  <text x="24.0" y="23.0" text-anchor="middle" dominant-baseline="middle" fill="#00c853" font-size="18" font-weight="700" font-family="monospace">42</text>
+</svg>
+    </div>
+    <div class="sc-info">
+      <div class="sc-hd">
+        <span class="sc-code">000001</span>
+        <span class="sc-name">平安银行</span>
+        <span class="sc-sg" style="background:var(--green10);color:var(--green);border-color:var(--green20)">注意风险</span>
+      </div>
+      <div class="sc-pr">
+        <span class="sc-pv">10.53</span>
+        <span class="sc-pc" style="color:#e53935">+0.77%</span>
+        <span class="sc-chip">均线粘合</span>
+        <span class="sc-chip">量0.76</span>
+        <span class="sc-chip">R51</span>
+      </div>
+      <div class="sc-bar"><div class="db"><span class="dl">价格</span><div class="dt"><div class="df" style="width:20%"></div></div><span class="dv">6</span></div><div class="db"><span class="dl">量能</span><div class="dt"><div class="df" style="width:30%"></div></div><span class="dv">6</span></div><div class="db"><span class="dl">趋势</span><div class="dt"><div class="df" style="width:68%"></div></div><span class="dv">17</span></div><div class="db"><span class="dl">强度</span><div class="dt"><div class="df" style="width:53%"></div></div><span class="dv">8</span></div><div class="db"><span class="dl">风控</span><div class="dt"><div class="df" style="width:50%"></div></div><span class="dv">5</span></div></div>
+    </div>
+  </div>
+  <div class="sc-bot">
+    <div class="sc-m"><svg width="40" height="40" viewBox="0 0 40 40">
+  <circle cx="20.0" cy="20.0" r="16.0" fill="none" stroke="#1e2434" stroke-width="4"/>
+  <circle cx="20.0" cy="20.0" r="16.0" fill="none" stroke="#00c853" stroke-width="4"
+    stroke-dasharray="42.2 100.5" stroke-linecap="round"
+    transform="rotate(-90 20.0 20.0)"/>
+  <text x="20.0" y="19.0" text-anchor="middle" dominant-baseline="middle" fill="#00c853" font-size="18" font-weight="700" font-family="monospace">42</text>
+</svg></div>
+    <div class="sc-ch"><svg width="120" height="32" viewBox="0 0 120 32" style="display:block">
+  <polygon points="0,32 0.0,16.4 4.1,14.0 8.3,16.4 12.4,21.0 16.6,16.7 20.7,15.3 24.8,12.6 29.0,7.5 33.1,8.1 37.2,0.0 41.4,4.8 45.5,8.1 49.7,12.4 53.8,19.4 57.9,15.9 62.1,14.3 66.2,19.6 70.3,22.1 74.5,27.2 78.6,26.9 82.8,32.0 86.9,29.0 91.0,25.8 95.2,25.5 99.3,19.9 103.4,20.7 107.6,17.2 111.7,20.2 115.9,21.2 120.0,19.1 120,32" fill="#00c85333"/>
+  <polyline points="0.0,16.4 4.1,14.0 8.3,16.4 12.4,21.0 16.6,16.7 20.7,15.3 24.8,12.6 29.0,7.5 33.1,8.1 37.2,0.0 41.4,4.8 45.5,8.1 49.7,12.4 53.8,19.4 57.9,15.9 62.1,14.3 66.2,19.6 70.3,22.1 74.5,27.2 78.6,26.9 82.8,32.0 86.9,29.0 91.0,25.8 95.2,25.5 99.3,19.9 103.4,20.7 107.6,17.2 111.7,20.2 115.9,21.2 120.0,19.1" fill="none" stroke="#00c853" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="120.0" cy="19.1" r="2.5" fill="#00c853"/>
+</svg></div>
+    <div class="sc-mets">
+      <div class="sc-mt"><span>15日</span><span style="color:#00c853">-1.1%</span></div>
+      <div class="sc-mt"><span>45日</span><span style="color:#00c853">-3.7%</span></div>
+      <div class="sc-mt"><span>支撑</span><span>10.45</span></div>
+      <div class="sc-mt"><span>压力</span><span>10.6</span></div>
+      <div class="sc-mt"><span>回撤</span><span>-4.8%</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="sc" style="--dly:0.3s">
+  <div class="sc-top">
+    <div class="sc-left">
+      <svg width="48" height="48" viewBox="0 0 48 48">
+  <circle cx="24.0" cy="24.0" r="20.0" fill="none" stroke="#1e2434" stroke-width="4"/>
+  <circle cx="24.0" cy="24.0" r="20.0" fill="none" stroke="#00c853" stroke-width="4"
+    stroke-dasharray="50.3 125.7" stroke-linecap="round"
+    transform="rotate(-90 24.0 24.0)"/>
+  <text x="24.0" y="23.0" text-anchor="middle" dominant-baseline="middle" fill="#00c853" font-size="18" font-weight="700" font-family="monospace">40</text>
+</svg>
+    </div>
+    <div class="sc-info">
+      <div class="sc-hd">
+        <span class="sc-code">600519</span>
+        <span class="sc-name">贵州茅台</span>
+        <span class="sc-sg" style="background:var(--green10);color:var(--green);border-color:var(--green20)">注意风险</span>
+      </div>
+      <div class="sc-pr">
+        <span class="sc-pv">1197.74</span>
+        <span class="sc-pc" style="color:#00c853">-0.60%</span>
+        <span class="sc-chip">空头排列</span>
+        <span class="sc-chip">量0.72</span>
+        <span class="sc-chip">R45</span>
+      </div>
+      <div class="sc-bar"><div class="db"><span class="dl">价格</span><div class="dt"><div class="df" style="width:13%"></div></div><span class="dv">4</span></div><div class="db"><span class="dl">量能</span><div class="dt"><div class="df" style="width:65%"></div></div><span class="dv">13</span></div><div class="db"><span class="dl">趋势</span><div class="dt"><div class="df" style="width:40%"></div></div><span class="dv">10</span></div><div class="db"><span class="dl">强度</span><div class="dt"><div class="df" style="width:53%"></div></div><span class="dv">8</span></div><div class="db"><span class="dl">风控</span><div class="dt"><div class="df" style="width:50%"></div></div><span class="dv">5</span></div></div>
+    </div>
+  </div>
+  <div class="sc-bot">
+    <div class="sc-m"><svg width="40" height="40" viewBox="0 0 40 40">
+  <circle cx="20.0" cy="20.0" r="16.0" fill="none" stroke="#1e2434" stroke-width="4"/>
+  <circle cx="20.0" cy="20.0" r="16.0" fill="none" stroke="#00c853" stroke-width="4"
+    stroke-dasharray="40.2 100.5" stroke-linecap="round"
+    transform="rotate(-90 20.0 20.0)"/>
+  <text x="20.0" y="19.0" text-anchor="middle" dominant-baseline="middle" fill="#00c853" font-size="18" font-weight="700" font-family="monospace">40</text>
+</svg></div>
+    <div class="sc-ch"><svg width="120" height="32" viewBox="0 0 120 32" style="display:block">
+  <polygon points="0,32 0.0,0.0 4.1,0.7 8.3,7.8 12.4,11.8 16.6,10.4 20.7,13.2 24.8,15.2 29.0,9.6 33.1,8.7 37.2,5.0 41.4,10.9 45.5,15.3 49.7,19.7 53.8,26.8 57.9,19.3 62.1,24.7 66.2,28.9 70.3,27.6 74.5,32.0 78.6,24.5 82.8,27.2 86.9,25.1 91.0,22.3 95.2,24.7 99.3,21.2 103.4,26.3 107.6,23.3 111.7,28.2 115.9,21.7 120.0,23.8 120,32" fill="#00c85333"/>
+  <polyline points="0.0,0.0 4.1,0.7 8.3,7.8 12.4,11.8 16.6,10.4 20.7,13.2 24.8,15.2 29.0,9.6 33.1,8.7 37.2,5.0 41.4,10.9 45.5,15.3 49.7,19.7 53.8,26.8 57.9,19.3 62.1,24.7 66.2,28.9 70.3,27.6 74.5,32.0 78.6,24.5 82.8,27.2 86.9,25.1 91.0,22.3 95.2,24.7 99.3,21.2 103.4,26.3 107.6,23.3 111.7,28.2 115.9,21.7 120.0,23.8" fill="none" stroke="#00c853" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="120.0" cy="23.8" r="2.5" fill="#00c853"/>
+</svg></div>
+    <div class="sc-mets">
+      <div class="sc-mt"><span>15日</span><span style="color:#00c853">-1.3%</span></div>
+      <div class="sc-mt"><span>45日</span><span style="color:#00c853">-10.9%</span></div>
+      <div class="sc-mt"><span>支撑</span><span>1182.19</span></div>
+      <div class="sc-mt"><span>压力</span><span>1204.98</span></div>
+      <div class="sc-mt"><span>回撤</span><span>-3.6%</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="sc" style="--dly:0.36s">
+  <div class="sc-top">
+    <div class="sc-left">
+      <svg width="48" height="48" viewBox="0 0 48 48">
+  <circle cx="24.0" cy="24.0" r="20.0" fill="none" stroke="#1e2434" stroke-width="4"/>
+  <circle cx="24.0" cy="24.0" r="20.0" fill="none" stroke="#00c853" stroke-width="4"
+    stroke-dasharray="45.2 125.7" stroke-linecap="round"
+    transform="rotate(-90 24.0 24.0)"/>
+  <text x="24.0" y="23.0" text-anchor="middle" dominant-baseline="middle" fill="#00c853" font-size="18" font-weight="700" font-family="monospace">36</text>
+</svg>
+    </div>
+    <div class="sc-info">
+      <div class="sc-hd">
+        <span class="sc-code">601318</span>
+        <span class="sc-name">中国平安</span>
+        <span class="sc-sg" style="background:var(--green10);color:var(--green);border-color:var(--green20)">注意风险</span>
+      </div>
+      <div class="sc-pr">
+        <span class="sc-pv">49.19</span>
+        <span class="sc-pc" style="color:#00c853">-0.59%</span>
+        <span class="sc-chip">均线粘合</span>
+        <span class="sc-chip">量0.58</span>
+        <span class="sc-chip">R44</span>
+      </div>
+      <div class="sc-bar"><div class="db"><span class="dl">价格</span><div class="dt"><div class="df" style="width:0%"></div></div><span class="dv">0</span></div><div class="db"><span class="dl">量能</span><div class="dt"><div class="df" style="width:65%"></div></div><span class="dv">13</span></div><div class="db"><span class="dl">趋势</span><div class="dt"><div class="df" style="width:44%"></div></div><span class="dv">11</span></div><div class="db"><span class="dl">强度</span><div class="dt"><div class="df" style="width:53%"></div></div><span class="dv">8</span></div><div class="db"><span class="dl">风控</span><div class="dt"><div class="df" style="width:40%"></div></div><span class="dv">4</span></div></div>
+    </div>
+  </div>
+  <div class="sc-bot">
+    <div class="sc-m"><svg width="40" height="40" viewBox="0 0 40 40">
+  <circle cx="20.0" cy="20.0" r="16.0" fill="none" stroke="#1e2434" stroke-width="4"/>
+  <circle cx="20.0" cy="20.0" r="16.0" fill="none" stroke="#00c853" stroke-width="4"
+    stroke-dasharray="36.2 100.5" stroke-linecap="round"
+    transform="rotate(-90 20.0 20.0)"/>
+  <text x="20.0" y="19.0" text-anchor="middle" dominant-baseline="middle" fill="#00c853" font-size="18" font-weight="700" font-family="monospace">36</text>
+</svg></div>
+    <div class="sc-ch"><svg width="120" height="32" viewBox="0 0 120 32" style="display:block">
+  <polygon points="0,32 0.0,9.7 4.1,8.7 8.3,10.4 12.4,12.6 16.6,11.4 20.7,11.9 24.8,9.4 29.0,4.6 33.1,7.3 37.2,1.0 41.4,0.0 45.5,5.7 49.7,6.7 53.8,22.2 57.9,10.3 62.1,17.5 66.2,23.4 70.3,22.5 74.5,32.0 78.6,25.7 82.8,29.7 86.9,21.5 91.0,24.3 95.2,23.5 99.3,18.9 103.4,22.6 107.6,21.4 111.7,21.7 115.9,21.7 120.0,23.0 120,32" fill="#00c85333"/>
+  <polyline points="0.0,9.7 4.1,8.7 8.3,10.4 12.4,12.6 16.6,11.4 20.7,11.9 24.8,9.4 29.0,4.6 33.1,7.3 37.2,1.0 41.4,0.0 45.5,5.7 49.7,6.7 53.8,22.2 57.9,10.3 62.1,17.5 66.2,23.4 70.3,22.5 74.5,32.0 78.6,25.7 82.8,29.7 86.9,21.5 91.0,24.3 95.2,23.5 99.3,18.9 103.4,22.6 107.6,21.4 111.7,21.7 115.9,21.7 120.0,23.0" fill="none" stroke="#00c853" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="120.0" cy="23.0" r="2.5" fill="#00c853"/>
+</svg></div>
+    <div class="sc-mets">
+      <div class="sc-mt"><span>15日</span><span style="color:#00c853">-5.4%</span></div>
+      <div class="sc-mt"><span>45日</span><span style="color:#00c853">-15.6%</span></div>
+      <div class="sc-mt"><span>支撑</span><span>49.19</span></div>
+      <div class="sc-mt"><span>压力</span><span>49.54</span></div>
+      <div class="sc-mt"><span>回撤</span><span>-9.3%</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="sc" style="--dly:0.42s">
+  <div class="sc-top">
+    <div class="sc-left">
+      <svg width="48" height="48" viewBox="0 0 48 48">
+  <circle cx="24.0" cy="24.0" r="20.0" fill="none" stroke="#1e2434" stroke-width="4"/>
+  <circle cx="24.0" cy="24.0" r="20.0" fill="none" stroke="#00c853" stroke-width="4"
+    stroke-dasharray="44.0 125.7" stroke-linecap="round"
+    transform="rotate(-90 24.0 24.0)"/>
+  <text x="24.0" y="23.0" text-anchor="middle" dominant-baseline="middle" fill="#00c853" font-size="18" font-weight="700" font-family="monospace">35</text>
+</svg>
+    </div>
+    <div class="sc-info">
+      <div class="sc-hd">
+        <span class="sc-code">000858</span>
+        <span class="sc-name">五粮液</span>
+        <span class="sc-sg" style="background:var(--green10);color:var(--green);border-color:var(--green20)">注意风险</span>
+      </div>
+      <div class="sc-pr">
+        <span class="sc-pv">72.32</span>
+        <span class="sc-pc" style="color:#00c853">-1.86%</span>
+        <span class="sc-chip">空头排列</span>
+        <span class="sc-chip">量0.93</span>
+        <span class="sc-chip">R36</span>
+      </div>
+      <div class="sc-bar"><div class="db"><span class="dl">价格</span><div class="dt"><div class="df" style="width:0%"></div></div><span class="dv">0</span></div><div class="db"><span class="dl">量能</span><div class="dt"><div class="df" style="width:75%"></div></div><span class="dv">15</span></div><div class="db"><span class="dl">趋势</span><div class="dt"><div class="df" style="width:40%"></div></div><span class="dv">10</span></div><div class="db"><span class="dl">强度</span><div class="dt"><div class="df" style="width:40%"></div></div><span class="dv">6</span></div><div class="db"><span class="dl">风控</span><div class="dt"><div class="df" style="width:40%"></div></div><span class="dv">4</span></div></div>
+    </div>
+  </div>
+  <div class="sc-bot">
+    <div class="sc-m"><svg width="40" height="40" viewBox="0 0 40 40">
+  <circle cx="20.0" cy="20.0" r="16.0" fill="none" stroke="#1e2434" stroke-width="4"/>
+  <circle cx="20.0" cy="20.0" r="16.0" fill="none" stroke="#00c853" stroke-width="4"
+    stroke-dasharray="35.2 100.5" stroke-linecap="round"
+    transform="rotate(-90 20.0 20.0)"/>
+  <text x="20.0" y="19.0" text-anchor="middle" dominant-baseline="middle" fill="#00c853" font-size="18" font-weight="700" font-family="monospace">35</text>
+</svg></div>
+    <div class="sc-ch"><svg width="120" height="32" viewBox="0 0 120 32" style="display:block">
+  <polygon points="0,32 0.0,0.0 4.1,1.8 8.3,2.7 12.4,5.9 16.6,6.0 20.7,8.8 24.8,11.0 29.0,10.9 33.1,9.3 37.2,8.9 41.4,9.7 45.5,13.0 49.7,15.1 53.8,19.3 57.9,17.5 62.1,22.1 66.2,25.9 70.3,21.5 74.5,26.2 78.6,24.1 82.8,24.1 86.9,22.7 91.0,25.3 95.2,26.1 99.3,24.7 103.4,29.9 107.6,30.5 111.7,32.0 115.9,24.9 120.0,28.4 120,32" fill="#00c85333"/>
+  <polyline points="0.0,0.0 4.1,1.8 8.3,2.7 12.4,5.9 16.6,6.0 20.7,8.8 24.8,11.0 29.0,10.9 33.1,9.3 37.2,8.9 41.4,9.7 45.5,13.0 49.7,15.1 53.8,19.3 57.9,17.5 62.1,22.1 66.2,25.9 70.3,21.5 74.5,26.2 78.6,24.1 82.8,24.1 86.9,22.7 91.0,25.3 95.2,26.1 99.3,24.7 103.4,29.9 107.6,30.5 111.7,32.0 115.9,24.9 120.0,28.4" fill="none" stroke="#00c853" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="120.0" cy="28.4" r="2.5" fill="#00c853"/>
+</svg></div>
+    <div class="sc-mets">
+      <div class="sc-mt"><span>15日</span><span style="color:#00c853">-5.5%</span></div>
+      <div class="sc-mt"><span>45日</span><span style="color:#00c853">-21.5%</span></div>
+      <div class="sc-mt"><span>支撑</span><span>70.9</span></div>
+      <div class="sc-mt"><span>压力</span><span>73.69</span></div>
+      <div class="sc-mt"><span>回撤</span><span>-9.2%</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="sc" style="--dly:0.48s">
+  <div class="sc-top">
+    <div class="sc-left">
+      <svg width="48" height="48" viewBox="0 0 48 48">
+  <circle cx="24.0" cy="24.0" r="20.0" fill="none" stroke="#1e2434" stroke-width="4"/>
+  <circle cx="24.0" cy="24.0" r="20.0" fill="none" stroke="#00c853" stroke-width="4"
+    stroke-dasharray="44.0 125.7" stroke-linecap="round"
+    transform="rotate(-90 24.0 24.0)"/>
+  <text x="24.0" y="23.0" text-anchor="middle" dominant-baseline="middle" fill="#00c853" font-size="18" font-weight="700" font-family="monospace">35</text>
+</svg>
+    </div>
+    <div class="sc-info">
+      <div class="sc-hd">
+        <span class="sc-code">300059</span>
+        <span class="sc-name">东方财富</span>
+        <span class="sc-sg" style="background:var(--green10);color:var(--green);border-color:var(--green20)">注意风险</span>
+      </div>
+      <div class="sc-pr">
+        <span class="sc-pv">19.97</span>
+        <span class="sc-pc" style="color:#00c853">-1.09%</span>
+        <span class="sc-chip">均线粘合</span>
+        <span class="sc-chip">量0.56</span>
+        <span class="sc-chip">R49</span>
+      </div>
+      <div class="sc-bar"><div class="db"><span class="dl">价格</span><div class="dt"><div class="df" style="width:13%"></div></div><span class="dv">4</span></div><div class="db"><span class="dl">量能</span><div class="dt"><div class="df" style="width:65%"></div></div><span class="dv">13</span></div><div class="db"><span class="dl">趋势</span><div class="dt"><div class="df" style="width:8%"></div></div><span class="dv">2</span></div><div class="db"><span class="dl">强度</span><div class="dt"><div class="df" style="width:80%"></div></div><span class="dv">12</span></div><div class="db"><span class="dl">风控</span><div class="dt"><div class="df" style="width:40%"></div></div><span class="dv">4</span></div></div>
+    </div>
+  </div>
+  <div class="sc-bot">
+    <div class="sc-m"><svg width="40" height="40" viewBox="0 0 40 40">
+  <circle cx="20.0" cy="20.0" r="16.0" fill="none" stroke="#1e2434" stroke-width="4"/>
+  <circle cx="20.0" cy="20.0" r="16.0" fill="none" stroke="#00c853" stroke-width="4"
+    stroke-dasharray="35.2 100.5" stroke-linecap="round"
+    transform="rotate(-90 20.0 20.0)"/>
+  <text x="20.0" y="19.0" text-anchor="middle" dominant-baseline="middle" fill="#00c853" font-size="18" font-weight="700" font-family="monospace">35</text>
+</svg></div>
+    <div class="sc-ch"><svg width="120" height="32" viewBox="0 0 120 32" style="display:block">
+  <polygon points="0,32 0.0,19.4 4.1,19.9 8.3,19.9 12.4,21.2 16.6,22.9 20.7,29.2 24.8,27.9 29.0,28.7 33.1,32.0 37.2,27.0 41.4,20.0 45.5,18.2 49.7,18.9 53.8,22.3 57.9,3.8 62.1,4.3 66.2,9.9 70.3,2.7 74.5,10.8 78.6,10.6 82.8,8.4 86.9,0.0 91.0,5.6 95.2,3.1 99.3,2.1 103.4,9.1 107.6,10.3 111.7,6.7 115.9,9.9 120.0,11.6 120,32" fill="#e5393533"/>
+  <polyline points="0.0,19.4 4.1,19.9 8.3,19.9 12.4,21.2 16.6,22.9 20.7,29.2 24.8,27.9 29.0,28.7 33.1,32.0 37.2,27.0 41.4,20.0 45.5,18.2 49.7,18.9 53.8,22.3 57.9,3.8 62.1,4.3 66.2,9.9 70.3,2.7 74.5,10.8 78.6,10.6 82.8,8.4 86.9,0.0 91.0,5.6 95.2,3.1 99.3,2.1 103.4,9.1 107.6,10.3 111.7,6.7 115.9,9.9 120.0,11.6" fill="none" stroke="#e53935" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="120.0" cy="11.6" r="2.5" fill="#e53935"/>
+</svg></div>
+    <div class="sc-mets">
+      <div class="sc-mt"><span>15日</span><span style="color:#00c853">-4.8%</span></div>
+      <div class="sc-mt"><span>45日</span><span style="color:#00c853">-2.5%</span></div>
+      <div class="sc-mt"><span>支撑</span><span>19.97</span></div>
+      <div class="sc-mt"><span>压力</span><span>20.59</span></div>
+      <div class="sc-mt"><span>回撤</span><span>-6.9%</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="sc" style="--dly:0.54s">
+  <div class="sc-top">
+    <div class="sc-left">
+      <svg width="48" height="48" viewBox="0 0 48 48">
+  <circle cx="24.0" cy="24.0" r="20.0" fill="none" stroke="#1e2434" stroke-width="4"/>
+  <circle cx="24.0" cy="24.0" r="20.0" fill="none" stroke="#00c853" stroke-width="4"
+    stroke-dasharray="22.6 125.7" stroke-linecap="round"
+    transform="rotate(-90 24.0 24.0)"/>
+  <text x="24.0" y="23.0" text-anchor="middle" dominant-baseline="middle" fill="#00c853" font-size="18" font-weight="700" font-family="monospace">18</text>
+</svg>
+    </div>
+    <div class="sc-info">
+      <div class="sc-hd">
+        <span class="sc-code">300750</span>
+        <span class="sc-name">宁德时代</span>
+        <span class="sc-sg" style="background:var(--green10);color:var(--green);border-color:var(--green20)">回避</span>
+      </div>
+      <div class="sc-pr">
+        <span class="sc-pv">357.08</span>
+        <span class="sc-pc" style="color:#e53935">+2.39%</span>
+        <span class="sc-chip">空头排列</span>
+        <span class="sc-chip">量0.94</span>
+        <span class="sc-chip">R38</span>
+      </div>
+      <div class="sc-bar"><div class="db"><span class="dl">价格</span><div class="dt"><div class="df" style="width:7%"></div></div><span class="dv">2</span></div><div class="db"><span class="dl">量能</span><div class="dt"><div class="df" style="width:40%"></div></div><span class="dv">8</span></div><div class="db"><span class="dl">趋势</span><div class="dt"><div class="df" style="width:0%"></div></div><span class="dv">0</span></div><div class="db"><span class="dl">强度</span><div class="dt"><div class="df" style="width:40%"></div></div><span class="dv">6</span></div><div class="db"><span class="dl">风控</span><div class="dt"><div class="df" style="width:20%"></div></div><span class="dv">2</span></div></div>
+    </div>
+  </div>
+  <div class="sc-bot">
+    <div class="sc-m"><svg width="40" height="40" viewBox="0 0 40 40">
+  <circle cx="20.0" cy="20.0" r="16.0" fill="none" stroke="#1e2434" stroke-width="4"/>
+  <circle cx="20.0" cy="20.0" r="16.0" fill="none" stroke="#00c853" stroke-width="4"
+    stroke-dasharray="18.1 100.5" stroke-linecap="round"
+    transform="rotate(-90 20.0 20.0)"/>
+  <text x="20.0" y="19.0" text-anchor="middle" dominant-baseline="middle" fill="#00c853" font-size="18" font-weight="700" font-family="monospace">18</text>
+</svg></div>
+    <div class="sc-ch"><svg width="120" height="32" viewBox="0 0 120 32" style="display:block">
+  <polygon points="0,32 0.0,5.2 4.1,0.0 8.3,2.8 12.4,9.7 16.6,11.6 20.7,15.4 24.8,12.9 29.0,17.1 33.1,19.4 37.2,14.7 41.4,13.5 45.5,11.4 49.7,13.1 53.8,15.9 57.9,9.4 62.1,15.6 66.2,14.5 70.3,12.0 74.5,19.9 78.6,15.6 82.8,15.4 86.9,18.8 91.0,19.4 95.2,20.3 99.3,22.3 103.4,23.1 107.6,27.4 111.7,21.9 115.9,32.0 120.0,28.9 120,32" fill="#00c85333"/>
+  <polyline points="0.0,5.2 4.1,0.0 8.3,2.8 12.4,9.7 16.6,11.6 20.7,15.4 24.8,12.9 29.0,17.1 33.1,19.4 37.2,14.7 41.4,13.5 45.5,11.4 49.7,13.1 53.8,15.9 57.9,9.4 62.1,15.6 66.2,14.5 70.3,12.0 74.5,19.9 78.6,15.6 82.8,15.4 86.9,18.8 91.0,19.4 95.2,20.3 99.3,22.3 103.4,23.1 107.6,27.4 111.7,21.9 115.9,32.0 120.0,28.9" fill="none" stroke="#00c853" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="120.0" cy="28.9" r="2.5" fill="#00c853"/>
+</svg></div>
+    <div class="sc-mets">
+      <div class="sc-mt"><span>15日</span><span style="color:#00c853">-12.7%</span></div>
+      <div class="sc-mt"><span>45日</span><span style="color:#00c853">-18.3%</span></div>
+      <div class="sc-mt"><span>支撑</span><span>348.76</span></div>
+      <div class="sc-mt"><span>压力</span><span>375.5</span></div>
+      <div class="sc-mt"><span>回撤</span><span>-12.7%</span></div>
+    </div>
+  </div>
+</div></div>
+
+<!-- ETF Panel -->
+<div id="panel-etf" class="panel">
+<div class="sc" style="--dly:0.0s">
+  <div class="sc-top">
+    <div class="sc-left">
+      <svg width="48" height="48" viewBox="0 0 48 48">
+  <circle cx="24.0" cy="24.0" r="20.0" fill="none" stroke="#1e2434" stroke-width="4"/>
+  <circle cx="24.0" cy="24.0" r="20.0" fill="none" stroke="#e53935" stroke-width="4"
+    stroke-dasharray="90.5 125.7" stroke-linecap="round"
+    transform="rotate(-90 24.0 24.0)"/>
+  <text x="24.0" y="23.0" text-anchor="middle" dominant-baseline="middle" fill="#e53935" font-size="18" font-weight="700" font-family="monospace">72</text>
+</svg>
+    </div>
+    <div class="sc-info">
+      <div class="sc-hd">
+        <span class="sc-code">588000</span>
+        <span class="sc-name">科创50ETF</span>
+        <span class="sc-sg" style="background:var(--red10);color:var(--red);border-color:var(--red20)">买入</span>
+      </div>
+      <div class="sc-pr">
+        <span class="sc-pv">2.17</span>
+        <span class="sc-pc" style="color:#00c853">-1.77%</span>
+        <span class="sc-chip">多头排列</span>
+        <span class="sc-chip">量0.98</span>
+        <span class="sc-chip">R56</span>
+      </div>
+      <div class="sc-bar"><div class="db"><span class="dl">价格</span><div class="dt"><div class="df" style="width:100%"></div></div><span class="dv">30</span></div><div class="db"><span class="dl">量能</span><div class="dt"><div class="df" style="width:40%"></div></div><span class="dv">8</span></div><div class="db"><span class="dl">趋势</span><div class="dt"><div class="df" style="width:60%"></div></div><span class="dv">15</span></div><div class="db"><span class="dl">强度</span><div class="dt"><div class="df" style="width:100%"></div></div><span class="dv">15</span></div><div class="db"><span class="dl">风控</span><div class="dt"><div class="df" style="width:40%"></div></div><span class="dv">4</span></div></div>
+    </div>
+  </div>
+  <div class="sc-bot">
+    <div class="sc-m"><svg width="40" height="40" viewBox="0 0 40 40">
+  <circle cx="20.0" cy="20.0" r="16.0" fill="none" stroke="#1e2434" stroke-width="4"/>
+  <circle cx="20.0" cy="20.0" r="16.0" fill="none" stroke="#e53935" stroke-width="4"
+    stroke-dasharray="72.4 100.5" stroke-linecap="round"
+    transform="rotate(-90 20.0 20.0)"/>
+  <text x="20.0" y="19.0" text-anchor="middle" dominant-baseline="middle" fill="#e53935" font-size="18" font-weight="700" font-family="monospace">72</text>
+</svg></div>
+    <div class="sc-ch"><svg width="120" height="32" viewBox="0 0 120 32" style="display:block">
+  <polygon points="0,32 0.0,28.6 4.1,27.3 8.3,25.2 12.4,24.8 16.6,28.1 20.7,32.0 24.8,28.5 29.0,29.0 33.1,28.5 37.2,28.5 41.4,24.2 45.5,23.7 49.7,19.6 53.8,15.8 57.9,13.9 62.1,15.5 66.2,12.0 70.3,8.0 74.5,10.2 78.6,4.6 82.8,0.0 86.9,2.6 91.0,10.9 95.2,11.7 99.3,11.0 103.4,10.6 107.6,9.6 111.7,0.8 115.9,6.5 120.0,8.4 120,32" fill="#e5393533"/>
+  <polyline points="0.0,28.6 4.1,27.3 8.3,25.2 12.4,24.8 16.6,28.1 20.7,32.0 24.8,28.5 29.0,29.0 33.1,28.5 37.2,28.5 41.4,24.2 45.5,23.7 49.7,19.6 53.8,15.8 57.9,13.9 62.1,15.5 66.2,12.0 70.3,8.0 74.5,10.2 78.6,4.6 82.8,0.0 86.9,2.6 91.0,10.9 95.2,11.7 99.3,11.0 103.4,10.6 107.6,9.6 111.7,0.8 115.9,6.5 120.0,8.4" fill="none" stroke="#e53935" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="120.0" cy="8.4" r="2.5" fill="#e53935"/>
+</svg></div>
+    <div class="sc-mets">
+      <div class="sc-mt"><span>15日</span><span style="color:#e53935">+5.5%</span></div>
+      <div class="sc-mt"><span>45日</span><span style="color:#e53935">+25.7%</span></div>
+      <div class="sc-mt"><span>支撑</span><span>2.13</span></div>
+      <div class="sc-mt"><span>压力</span><span>2.33</span></div>
+      <div class="sc-mt"><span>回撤</span><span>-7.4%</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="sc" style="--dly:0.06s">
+  <div class="sc-top">
+    <div class="sc-left">
+      <svg width="48" height="48" viewBox="0 0 48 48">
+  <circle cx="24.0" cy="24.0" r="20.0" fill="none" stroke="#1e2434" stroke-width="4"/>
+  <circle cx="24.0" cy="24.0" r="20.0" fill="none" stroke="#ffb74d" stroke-width="4"
+    stroke-dasharray="74.1 125.7" stroke-linecap="round"
+    transform="rotate(-90 24.0 24.0)"/>
+  <text x="24.0" y="23.0" text-anchor="middle" dominant-baseline="middle" fill="#ffb74d" font-size="18" font-weight="700" font-family="monospace">59</text>
+</svg>
+    </div>
+    <div class="sc-info">
+      <div class="sc-hd">
+        <span class="sc-code">159865</span>
+        <span class="sc-name">养殖ETF</span>
+        <span class="sc-sg" style="background:var(--amber10);color:var(--amber);border-color:var(--amber20)">观望</span>
+      </div>
+      <div class="sc-pr">
+        <span class="sc-pv">0.52</span>
+        <span class="sc-pc" style="color:#00c853">-0.95%</span>
+        <span class="sc-chip">多头排列</span>
+        <span class="sc-chip">量1.06</span>
+        <span class="sc-chip">R50</span>
+      </div>
+      <div class="sc-bar"><div class="db"><span class="dl">价格</span><div class="dt"><div class="df" style="width:23%"></div></div><span class="dv">7</span></div><div class="db"><span class="dl">量能</span><div class="dt"><div class="df" style="width:75%"></div></div><span class="dv">15</span></div><div class="db"><span class="dl">趋势</span><div class="dt"><div class="df" style="width:68%"></div></div><span class="dv">17</span></div><div class="db"><span class="dl">强度</span><div class="dt"><div class="df" style="width:100%"></div></div><span class="dv">15</span></div><div class="db"><span class="dl">风控</span><div class="dt"><div class="df" style="width:50%"></div></div><span class="dv">5</span></div></div>
+    </div>
+  </div>
+  <div class="sc-bot">
+    <div class="sc-m"><svg width="40" height="40" viewBox="0 0 40 40">
+  <circle cx="20.0" cy="20.0" r="16.0" fill="none" stroke="#1e2434" stroke-width="4"/>
+  <circle cx="20.0" cy="20.0" r="16.0" fill="none" stroke="#ffb74d" stroke-width="4"
+    stroke-dasharray="59.3 100.5" stroke-linecap="round"
+    transform="rotate(-90 20.0 20.0)"/>
+  <text x="20.0" y="19.0" text-anchor="middle" dominant-baseline="middle" fill="#ffb74d" font-size="18" font-weight="700" font-family="monospace">59</text>
+</svg></div>
+    <div class="sc-ch"><svg width="120" height="32" viewBox="0 0 120 32" style="display:block">
+  <polygon points="0,32 0.0,0.0 4.1,4.3 8.3,7.4 12.4,13.0 16.6,14.7 20.7,16.4 24.8,16.9 29.0,16.0 33.1,18.2 37.2,14.7 41.4,15.1 45.5,17.7 49.7,21.6 53.8,25.5 57.9,24.2 62.1,25.1 66.2,29.8 70.3,32.0 74.5,31.1 78.6,24.2 82.8,27.7 86.9,15.1 91.0,14.3 95.2,15.6 99.3,6.9 103.4,9.5 107.6,16.0 111.7,16.9 115.9,12.1 120.0,14.3 120,32" fill="#00c85333"/>
+  <polyline points="0.0,0.0 4.1,4.3 8.3,7.4 12.4,13.0 16.6,14.7 20.7,16.4 24.8,16.9 29.0,16.0 33.1,18.2 37.2,14.7 41.4,15.1 45.5,17.7 49.7,21.6 53.8,25.5 57.9,24.2 62.1,25.1 66.2,29.8 70.3,32.0 74.5,31.1 78.6,24.2 82.8,27.7 86.9,15.1 91.0,14.3 95.2,15.6 99.3,6.9 103.4,9.5 107.6,16.0 111.7,16.9 115.9,12.1 120.0,14.3" fill="none" stroke="#00c853" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="120.0" cy="14.3" r="2.5" fill="#00c853"/>
+</svg></div>
+    <div class="sc-mets">
+      <div class="sc-mt"><span>15日</span><span style="color:#e53935">+4.6%</span></div>
+      <div class="sc-mt"><span>45日</span><span style="color:#00c853">-14.2%</span></div>
+      <div class="sc-mt"><span>支撑</span><span>0.51</span></div>
+      <div class="sc-mt"><span>压力</span><span>0.53</span></div>
+      <div class="sc-mt"><span>回撤</span><span>-3.2%</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="sc" style="--dly:0.12s">
+  <div class="sc-top">
+    <div class="sc-left">
+      <svg width="48" height="48" viewBox="0 0 48 48">
+  <circle cx="24.0" cy="24.0" r="20.0" fill="none" stroke="#1e2434" stroke-width="4"/>
+  <circle cx="24.0" cy="24.0" r="20.0" fill="none" stroke="#00c853" stroke-width="4"
+    stroke-dasharray="54.0 125.7" stroke-linecap="round"
+    transform="rotate(-90 24.0 24.0)"/>
+  <text x="24.0" y="23.0" text-anchor="middle" dominant-baseline="middle" fill="#00c853" font-size="18" font-weight="700" font-family="monospace">43</text>
+</svg>
+    </div>
+    <div class="sc-info">
+      <div class="sc-hd">
+        <span class="sc-code">513100</span>
+        <span class="sc-name">纳指ETF</span>
+        <span class="sc-sg" style="background:var(--green10);color:var(--green);border-color:var(--green20)">注意风险</span>
+      </div>
+      <div class="sc-pr">
+        <span class="sc-pv">2.17</span>
+        <span class="sc-pc" style="color:#00c853">-0.18%</span>
+        <span class="sc-chip">空头排列</span>
+        <span class="sc-chip">量0.56</span>
+        <span class="sc-chip">R49</span>
+      </div>
+      <div class="sc-bar"><div class="db"><span class="dl">价格</span><div class="dt"><div class="df" style="width:37%"></div></div><span class="dv">11</span></div><div class="db"><span class="dl">量能</span><div class="dt"><div class="df" style="width:65%"></div></div><span class="dv">13</span></div><div class="db"><span class="dl">趋势</span><div class="dt"><div class="df" style="width:8%"></div></div><span class="dv">2</span></div><div class="db"><span class="dl">强度</span><div class="dt"><div class="df" style="width:80%"></div></div><span class="dv">12</span></div><div class="db"><span class="dl">风控</span><div class="dt"><div class="df" style="width:50%"></div></div><span class="dv">5</span></div></div>
+    </div>
+  </div>
+  <div class="sc-bot">
+    <div class="sc-m"><svg width="40" height="40" viewBox="0 0 40 40">
+  <circle cx="20.0" cy="20.0" r="16.0" fill="none" stroke="#1e2434" stroke-width="4"/>
+  <circle cx="20.0" cy="20.0" r="16.0" fill="none" stroke="#00c853" stroke-width="4"
+    stroke-dasharray="43.2 100.5" stroke-linecap="round"
+    transform="rotate(-90 20.0 20.0)"/>
+  <text x="20.0" y="19.0" text-anchor="middle" dominant-baseline="middle" fill="#00c853" font-size="18" font-weight="700" font-family="monospace">43</text>
+</svg></div>
+    <div class="sc-ch"><svg width="120" height="32" viewBox="0 0 120 32" style="display:block">
+  <polygon points="0,32 0.0,0.0 4.1,2.8 8.3,8.4 12.4,15.9 16.6,20.4 20.7,32.0 24.8,21.0 29.0,28.3 33.1,30.0 37.2,25.9 41.4,13.6 45.5,10.8 49.7,11.0 53.8,12.6 57.9,14.7 62.1,24.4 66.2,22.7 70.3,20.0 74.5,26.4 78.6,23.8 82.8,20.5 86.9,19.9 91.0,26.4 95.2,25.2 99.3,24.7 103.4,25.0 107.6,28.6 111.7,25.4 115.9,24.4 120.0,24.9 120,32" fill="#00c85333"/>
+  <polyline points="0.0,0.0 4.1,2.8 8.3,8.4 12.4,15.9 16.6,20.4 20.7,32.0 24.8,21.0 29.0,28.3 33.1,30.0 37.2,25.9 41.4,13.6 45.5,10.8 49.7,11.0 53.8,12.6 57.9,14.7 62.1,24.4 66.2,22.7 70.3,20.0 74.5,26.4 78.6,23.8 82.8,20.5 86.9,19.9 91.0,26.4 95.2,25.2 99.3,24.7 103.4,25.0 107.6,28.6 111.7,25.4 115.9,24.4 120.0,24.9" fill="none" stroke="#00c853" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="120.0" cy="24.9" r="2.5" fill="#00c853"/>
+</svg></div>
+    <div class="sc-mets">
+      <div class="sc-mt"><span>15日</span><span style="color:#00c853">-3.6%</span></div>
+      <div class="sc-mt"><span>45日</span><span style="color:#e53935">+5.1%</span></div>
+      <div class="sc-mt"><span>支撑</span><span>2.14</span></div>
+      <div class="sc-mt"><span>压力</span><span>2.17</span></div>
+      <div class="sc-mt"><span>回撤</span><span>-4.8%</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="sc" style="--dly:0.18s">
+  <div class="sc-top">
+    <div class="sc-left">
+      <svg width="48" height="48" viewBox="0 0 48 48">
+  <circle cx="24.0" cy="24.0" r="20.0" fill="none" stroke="#1e2434" stroke-width="4"/>
+  <circle cx="24.0" cy="24.0" r="20.0" fill="none" stroke="#00c853" stroke-width="4"
+    stroke-dasharray="51.5 125.7" stroke-linecap="round"
+    transform="rotate(-90 24.0 24.0)"/>
+  <text x="24.0" y="23.0" text-anchor="middle" dominant-baseline="middle" fill="#00c853" font-size="18" font-weight="700" font-family="monospace">41</text>
+</svg>
+    </div>
+    <div class="sc-info">
+      <div class="sc-hd">
+        <span class="sc-code">510050</span>
+        <span class="sc-name">上证50ETF</span>
+        <span class="sc-sg" style="background:var(--green10);color:var(--green);border-color:var(--green20)">注意风险</span>
+      </div>
+      <div class="sc-pr">
+        <span class="sc-pv">3.03</span>
+        <span class="sc-pc" style="color:#00c853">-0.88%</span>
+        <span class="sc-chip">均线粘合</span>
+        <span class="sc-chip">量0.67</span>
+        <span class="sc-chip">R50</span>
+      </div>
+      <div class="sc-bar"><div class="db"><span class="dl">价格</span><div class="dt"><div class="df" style="width:20%"></div></div><span class="dv">6</span></div><div class="db"><span class="dl">量能</span><div class="dt"><div class="df" style="width:45%"></div></div><span class="dv">9</span></div><div class="db"><span class="dl">趋势</span><div class="dt"><div class="df" style="width:36%"></div></div><span class="dv">9</span></div><div class="db"><span class="dl">强度</span><div class="dt"><div class="df" style="width:80%"></div></div><span class="dv">12</span></div><div class="db"><span class="dl">风控</span><div class="dt"><div class="df" style="width:50%"></div></div><span class="dv">5</span></div></div>
+    </div>
+  </div>
+  <div class="sc-bot">
+    <div class="sc-m"><svg width="40" height="40" viewBox="0 0 40 40">
+  <circle cx="20.0" cy="20.0" r="16.0" fill="none" stroke="#1e2434" stroke-width="4"/>
+  <circle cx="20.0" cy="20.0" r="16.0" fill="none" stroke="#00c853" stroke-width="4"
+    stroke-dasharray="41.2 100.5" stroke-linecap="round"
+    transform="rotate(-90 20.0 20.0)"/>
+  <text x="20.0" y="19.0" text-anchor="middle" dominant-baseline="middle" fill="#00c853" font-size="18" font-weight="700" font-family="monospace">41</text>
+</svg></div>
+    <div class="sc-ch"><svg width="120" height="32" viewBox="0 0 120 32" style="display:block">
+  <polygon points="0,32 0.0,21.1 4.1,17.0 8.3,16.5 12.4,21.7 16.6,25.6 20.7,32.0 24.8,29.4 29.0,27.1 33.1,27.6 37.2,18.8 41.4,11.9 45.5,17.0 49.7,13.4 53.8,13.1 57.9,0.0 62.1,15.0 66.2,11.9 70.3,6.2 74.5,15.8 78.6,2.3 82.8,2.3 86.9,3.8 91.0,15.3 95.2,12.1 99.3,8.3 103.4,13.9 107.6,14.4 111.7,1.3 115.9,6.5 120.0,10.9 120,32" fill="#e5393533"/>
+  <polyline points="0.0,21.1 4.1,17.0 8.3,16.5 12.4,21.7 16.6,25.6 20.7,32.0 24.8,29.4 29.0,27.1 33.1,27.6 37.2,18.8 41.4,11.9 45.5,17.0 49.7,13.4 53.8,13.1 57.9,0.0 62.1,15.0 66.2,11.9 70.3,6.2 74.5,15.8 78.6,2.3 82.8,2.3 86.9,3.8 91.0,15.3 95.2,12.1 99.3,8.3 103.4,13.9 107.6,14.4 111.7,1.3 115.9,6.5 120.0,10.9" fill="none" stroke="#e53935" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="120.0" cy="10.9" r="2.5" fill="#e53935"/>
+</svg></div>
+    <div class="sc-mets">
+      <div class="sc-mt"><span>15日</span><span style="color:#00c853">-2.2%</span></div>
+      <div class="sc-mt"><span>45日</span><span style="color:#00c853">-1.5%</span></div>
+      <div class="sc-mt"><span>支撑</span><span>3.01</span></div>
+      <div class="sc-mt"><span>压力</span><span>3.09</span></div>
+      <div class="sc-mt"><span>回撤</span><span>-2.2%</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="sc" style="--dly:0.24s">
+  <div class="sc-top">
+    <div class="sc-left">
+      <svg width="48" height="48" viewBox="0 0 48 48">
+  <circle cx="24.0" cy="24.0" r="20.0" fill="none" stroke="#1e2434" stroke-width="4"/>
+  <circle cx="24.0" cy="24.0" r="20.0" fill="none" stroke="#00c853" stroke-width="4"
+    stroke-dasharray="49.0 125.7" stroke-linecap="round"
+    transform="rotate(-90 24.0 24.0)"/>
+  <text x="24.0" y="23.0" text-anchor="middle" dominant-baseline="middle" fill="#00c853" font-size="18" font-weight="700" font-family="monospace">39</text>
+</svg>
+    </div>
+    <div class="sc-info">
+      <div class="sc-hd">
+        <span class="sc-code">512880</span>
+        <span class="sc-name">证券ETF</span>
+        <span class="sc-sg" style="background:var(--green10);color:var(--green);border-color:var(--green20)">注意风险</span>
+      </div>
+      <div class="sc-pr">
+        <span class="sc-pv">1.10</span>
+        <span class="sc-pc" style="color:#00c853">-0.72%</span>
+        <span class="sc-chip">均线粘合</span>
+        <span class="sc-chip">量0.76</span>
+        <span class="sc-chip">R50</span>
+      </div>
+      <div class="sc-bar"><div class="db"><span class="dl">价格</span><div class="dt"><div class="df" style="width:27%"></div></div><span class="dv">8</span></div><div class="db"><span class="dl">量能</span><div class="dt"><div class="df" style="width:65%"></div></div><span class="dv">13</span></div><div class="db"><span class="dl">趋势</span><div class="dt"><div class="df" style="width:8%"></div></div><span class="dv">2</span></div><div class="db"><span class="dl">强度</span><div class="dt"><div class="df" style="width:80%"></div></div><span class="dv">12</span></div><div class="db"><span class="dl">风控</span><div class="dt"><div class="df" style="width:40%"></div></div><span class="dv">4</span></div></div>
+    </div>
+  </div>
+  <div class="sc-bot">
+    <div class="sc-m"><svg width="40" height="40" viewBox="0 0 40 40">
+  <circle cx="20.0" cy="20.0" r="16.0" fill="none" stroke="#1e2434" stroke-width="4"/>
+  <circle cx="20.0" cy="20.0" r="16.0" fill="none" stroke="#00c853" stroke-width="4"
+    stroke-dasharray="39.2 100.5" stroke-linecap="round"
+    transform="rotate(-90 20.0 20.0)"/>
+  <text x="20.0" y="19.0" text-anchor="middle" dominant-baseline="middle" fill="#00c853" font-size="18" font-weight="700" font-family="monospace">39</text>
+</svg></div>
+    <div class="sc-ch"><svg width="120" height="32" viewBox="0 0 120 32" style="display:block">
+  <polygon points="0,32 0.0,25.8 4.1,25.4 8.3,25.8 12.4,28.2 16.6,29.3 20.7,32.0 24.8,31.3 29.0,28.9 33.1,30.7 37.2,24.0 41.4,19.0 45.5,17.2 49.7,17.4 53.8,23.0 57.9,8.2 62.1,8.2 66.2,11.9 70.3,4.9 74.5,12.6 78.6,9.7 82.8,9.1 86.9,0.0 91.0,4.8 95.2,3.8 99.3,2.9 103.4,9.7 107.6,11.9 111.7,8.0 115.9,12.1 120.0,13.5 120,32" fill="#e5393533"/>
+  <polyline points="0.0,25.8 4.1,25.4 8.3,25.8 12.4,28.2 16.6,29.3 20.7,32.0 24.8,31.3 29.0,28.9 33.1,30.7 37.2,24.0 41.4,19.0 45.5,17.2 49.7,17.4 53.8,23.0 57.9,8.2 62.1,8.2 66.2,11.9 70.3,4.9 74.5,12.6 78.6,9.7 82.8,9.1 86.9,0.0 91.0,4.8 95.2,3.8 99.3,2.9 103.4,9.7 107.6,11.9 111.7,8.0 115.9,12.1 120.0,13.5" fill="none" stroke="#e53935" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="120.0" cy="13.5" r="2.5" fill="#e53935"/>
+</svg></div>
+    <div class="sc-mets">
+      <div class="sc-mt"><span>15日</span><span style="color:#00c853">-2.6%</span></div>
+      <div class="sc-mt"><span>45日</span><span style="color:#e53935">+2.0%</span></div>
+      <div class="sc-mt"><span>支撑</span><span>1.1</span></div>
+      <div class="sc-mt"><span>压力</span><span>1.13</span></div>
+      <div class="sc-mt"><span>回撤</span><span>-6.3%</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="sc" style="--dly:0.3s">
+  <div class="sc-top">
+    <div class="sc-left">
+      <svg width="48" height="48" viewBox="0 0 48 48">
+  <circle cx="24.0" cy="24.0" r="20.0" fill="none" stroke="#1e2434" stroke-width="4"/>
+  <circle cx="24.0" cy="24.0" r="20.0" fill="none" stroke="#00c853" stroke-width="4"
+    stroke-dasharray="46.5 125.7" stroke-linecap="round"
+    transform="rotate(-90 24.0 24.0)"/>
+  <text x="24.0" y="23.0" text-anchor="middle" dominant-baseline="middle" fill="#00c853" font-size="18" font-weight="700" font-family="monospace">37</text>
+</svg>
+    </div>
+    <div class="sc-info">
+      <div class="sc-hd">
+        <span class="sc-code">159915</span>
+        <span class="sc-name">创业板ETF</span>
+        <span class="sc-sg" style="background:var(--green10);color:var(--green);border-color:var(--green20)">注意风险</span>
+      </div>
+      <div class="sc-pr">
+        <span class="sc-pv">3.81</span>
+        <span class="sc-pc" style="color:#00c853">-1.35%</span>
+        <span class="sc-chip">空头排列</span>
+        <span class="sc-chip">量1.06</span>
+        <span class="sc-chip">R41</span>
+      </div>
+      <div class="sc-bar"><div class="db"><span class="dl">价格</span><div class="dt"><div class="df" style="width:47%"></div></div><span class="dv">14</span></div><div class="db"><span class="dl">量能</span><div class="dt"><div class="df" style="width:55%"></div></div><span class="dv">11</span></div><div class="db"><span class="dl">趋势</span><div class="dt"><div class="df" style="width:0%"></div></div><span class="dv">0</span></div><div class="db"><span class="dl">强度</span><div class="dt"><div class="df" style="width:67%"></div></div><span class="dv">10</span></div><div class="db"><span class="dl">风控</span><div class="dt"><div class="df" style="width:20%"></div></div><span class="dv">2</span></div></div>
+    </div>
+  </div>
+  <div class="sc-bot">
+    <div class="sc-m"><svg width="40" height="40" viewBox="0 0 40 40">
+  <circle cx="20.0" cy="20.0" r="16.0" fill="none" stroke="#1e2434" stroke-width="4"/>
+  <circle cx="20.0" cy="20.0" r="16.0" fill="none" stroke="#00c853" stroke-width="4"
+    stroke-dasharray="37.2 100.5" stroke-linecap="round"
+    transform="rotate(-90 20.0 20.0)"/>
+  <text x="20.0" y="19.0" text-anchor="middle" dominant-baseline="middle" fill="#00c853" font-size="18" font-weight="700" font-family="monospace">37</text>
+</svg></div>
+    <div class="sc-ch"><svg width="120" height="32" viewBox="0 0 120 32" style="display:block">
+  <polygon points="0,32 0.0,23.6 4.1,17.7 8.3,13.7 12.4,16.1 16.6,22.9 20.7,31.1 24.8,23.1 29.0,28.7 33.1,30.9 37.2,30.0 41.4,19.1 45.5,15.5 49.7,11.6 53.8,6.9 57.9,0.9 62.1,10.1 66.2,7.5 70.3,0.0 74.5,9.8 78.6,8.7 82.8,1.7 86.9,6.6 91.0,19.6 95.2,19.6 99.3,23.2 103.4,25.3 107.6,28.9 111.7,19.4 115.9,29.2 120.0,32.0 120,32" fill="#00c85333"/>
+  <polyline points="0.0,23.6 4.1,17.7 8.3,13.7 12.4,16.1 16.6,22.9 20.7,31.1 24.8,23.1 29.0,28.7 33.1,30.9 37.2,30.0 41.4,19.1 45.5,15.5 49.7,11.6 53.8,6.9 57.9,0.9 62.1,10.1 66.2,7.5 70.3,0.0 74.5,9.8 78.6,8.7 82.8,1.7 86.9,6.6 91.0,19.6 95.2,19.6 99.3,23.2 103.4,25.3 107.6,28.9 111.7,19.4 115.9,29.2 120.0,32.0" fill="none" stroke="#00c853" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="120.0" cy="32.0" r="2.5" fill="#00c853"/>
+</svg></div>
+    <div class="sc-mets">
+      <div class="sc-mt"><span>15日</span><span style="color:#00c853">-13.0%</span></div>
+      <div class="sc-mt"><span>45日</span><span style="color:#e53935">+0.1%</span></div>
+      <div class="sc-mt"><span>支撑</span><span>3.81</span></div>
+      <div class="sc-mt"><span>压力</span><span>4.04</span></div>
+      <div class="sc-mt"><span>回撤</span><span>-13.3%</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="sc" style="--dly:0.36s">
+  <div class="sc-top">
+    <div class="sc-left">
+      <svg width="48" height="48" viewBox="0 0 48 48">
+  <circle cx="24.0" cy="24.0" r="20.0" fill="none" stroke="#1e2434" stroke-width="4"/>
+  <circle cx="24.0" cy="24.0" r="20.0" fill="none" stroke="#00c853" stroke-width="4"
+    stroke-dasharray="41.5 125.7" stroke-linecap="round"
+    transform="rotate(-90 24.0 24.0)"/>
+  <text x="24.0" y="23.0" text-anchor="middle" dominant-baseline="middle" fill="#00c853" font-size="18" font-weight="700" font-family="monospace">33</text>
+</svg>
+    </div>
+    <div class="sc-info">
+      <div class="sc-hd">
+        <span class="sc-code">510500</span>
+        <span class="sc-name">中证500ETF</span>
+        <span class="sc-sg" style="background:var(--green10);color:var(--green);border-color:var(--green20)">注意风险</span>
+      </div>
+      <div class="sc-pr">
+        <span class="sc-pv">8.43</span>
+        <span class="sc-pc" style="color:#00c853">-3.08%</span>
+        <span class="sc-chip">空头排列</span>
+        <span class="sc-chip">量1.19</span>
+        <span class="sc-chip">R43</span>
+      </div>
+      <div class="sc-bar"><div class="db"><span class="dl">价格</span><div class="dt"><div class="df" style="width:30%"></div></div><span class="dv">9</span></div><div class="db"><span class="dl">量能</span><div class="dt"><div class="df" style="width:40%"></div></div><span class="dv">8</span></div><div class="db"><span class="dl">趋势</span><div class="dt"><div class="df" style="width:0%"></div></div><span class="dv">0</span></div><div class="db"><span class="dl">强度</span><div class="dt"><div class="df" style="width:80%"></div></div><span class="dv">12</span></div><div class="db"><span class="dl">风控</span><div class="dt"><div class="df" style="width:40%"></div></div><span class="dv">4</span></div></div>
+    </div>
+  </div>
+  <div class="sc-bot">
+    <div class="sc-m"><svg width="40" height="40" viewBox="0 0 40 40">
+  <circle cx="20.0" cy="20.0" r="16.0" fill="none" stroke="#1e2434" stroke-width="4"/>
+  <circle cx="20.0" cy="20.0" r="16.0" fill="none" stroke="#00c853" stroke-width="4"
+    stroke-dasharray="33.2 100.5" stroke-linecap="round"
+    transform="rotate(-90 20.0 20.0)"/>
+  <text x="20.0" y="19.0" text-anchor="middle" dominant-baseline="middle" fill="#00c853" font-size="18" font-weight="700" font-family="monospace">33</text>
+</svg></div>
+    <div class="sc-ch"><svg width="120" height="32" viewBox="0 0 120 32" style="display:block">
+  <polygon points="0,32 0.0,23.4 4.1,22.4 8.3,21.0 12.4,21.2 16.6,24.3 20.7,32.0 24.8,26.3 29.0,29.1 33.1,30.2 37.2,27.1 41.4,18.5 45.5,16.0 49.7,12.2 53.8,10.4 57.9,5.3 62.1,10.8 66.2,5.9 70.3,3.1 74.5,9.5 78.6,6.3 82.8,0.0 86.9,0.4 91.0,9.8 95.2,8.3 99.3,10.9 103.4,15.3 107.6,18.3 111.7,11.1 115.9,14.1 120.0,21.7 120,32" fill="#e5393533"/>
+  <polyline points="0.0,23.4 4.1,22.4 8.3,21.0 12.4,21.2 16.6,24.3 20.7,32.0 24.8,26.3 29.0,29.1 33.1,30.2 37.2,27.1 41.4,18.5 45.5,16.0 49.7,12.2 53.8,10.4 57.9,5.3 62.1,10.8 66.2,5.9 70.3,3.1 74.5,9.5 78.6,6.3 82.8,0.0 86.9,0.4 91.0,9.8 95.2,8.3 99.3,10.9 103.4,15.3 107.6,18.3 111.7,11.1 115.9,14.1 120.0,21.7" fill="none" stroke="#e53935" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="120.0" cy="21.7" r="2.5" fill="#e53935"/>
+</svg></div>
+    <div class="sc-mets">
+      <div class="sc-mt"><span>15日</span><span style="color:#00c853">-6.4%</span></div>
+      <div class="sc-mt"><span>45日</span><span style="color:#00c853">-3.9%</span></div>
+      <div class="sc-mt"><span>支撑</span><span>8.43</span></div>
+      <div class="sc-mt"><span>压力</span><span>8.8</span></div>
+      <div class="sc-mt"><span>回撤</span><span>-8.3%</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="sc" style="--dly:0.42s">
+  <div class="sc-top">
+    <div class="sc-left">
+      <svg width="48" height="48" viewBox="0 0 48 48">
+  <circle cx="24.0" cy="24.0" r="20.0" fill="none" stroke="#1e2434" stroke-width="4"/>
+  <circle cx="24.0" cy="24.0" r="20.0" fill="none" stroke="#00c853" stroke-width="4"
+    stroke-dasharray="40.2 125.7" stroke-linecap="round"
+    transform="rotate(-90 24.0 24.0)"/>
+  <text x="24.0" y="23.0" text-anchor="middle" dominant-baseline="middle" fill="#00c853" font-size="18" font-weight="700" font-family="monospace">32</text>
+</svg>
+    </div>
+    <div class="sc-info">
+      <div class="sc-hd">
+        <span class="sc-code">159949</span>
+        <span class="sc-name">创业板50ETF</span>
+        <span class="sc-sg" style="background:var(--green10);color:var(--green);border-color:var(--green20)">注意风险</span>
+      </div>
+      <div class="sc-pr">
+        <span class="sc-pv">1.80</span>
+        <span class="sc-pc" style="color:#00c853">-1.15%</span>
+        <span class="sc-chip">空头排列</span>
+        <span class="sc-chip">量1.00</span>
+        <span class="sc-chip">R41</span>
+      </div>
+      <div class="sc-bar"><div class="db"><span class="dl">价格</span><div class="dt"><div class="df" style="width:30%"></div></div><span class="dv">9</span></div><div class="db"><span class="dl">量能</span><div class="dt"><div class="df" style="width:55%"></div></div><span class="dv">11</span></div><div class="db"><span class="dl">趋势</span><div class="dt"><div class="df" style="width:0%"></div></div><span class="dv">0</span></div><div class="db"><span class="dl">强度</span><div class="dt"><div class="df" style="width:67%"></div></div><span class="dv">10</span></div><div class="db"><span class="dl">风控</span><div class="dt"><div class="df" style="width:20%"></div></div><span class="dv">2</span></div></div>
+    </div>
+  </div>
+  <div class="sc-bot">
+    <div class="sc-m"><svg width="40" height="40" viewBox="0 0 40 40">
+  <circle cx="20.0" cy="20.0" r="16.0" fill="none" stroke="#1e2434" stroke-width="4"/>
+  <circle cx="20.0" cy="20.0" r="16.0" fill="none" stroke="#00c853" stroke-width="4"
+    stroke-dasharray="32.2 100.5" stroke-linecap="round"
+    transform="rotate(-90 20.0 20.0)"/>
+  <text x="20.0" y="19.0" text-anchor="middle" dominant-baseline="middle" fill="#00c853" font-size="18" font-weight="700" font-family="monospace">32</text>
+</svg></div>
+    <div class="sc-ch"><svg width="120" height="32" viewBox="0 0 120 32" style="display:block">
+  <polygon points="0,32 0.0,20.3 4.1,13.9 8.3,10.1 12.4,12.2 16.6,19.4 20.7,27.1 24.8,19.2 29.0,25.1 33.1,27.6 37.2,26.8 41.4,16.3 45.5,13.3 49.7,10.6 53.8,5.9 57.9,0.3 62.1,9.1 66.2,6.8 70.3,0.0 74.5,10.0 78.6,9.3 82.8,2.8 86.9,8.7 91.0,21.0 95.2,20.7 99.3,24.6 103.4,26.0 107.6,29.2 111.7,19.5 115.9,29.8 120.0,32.0 120,32" fill="#00c85333"/>
+  <polyline points="0.0,20.3 4.1,13.9 8.3,10.1 12.4,12.2 16.6,19.4 20.7,27.1 24.8,19.2 29.0,25.1 33.1,27.6 37.2,26.8 41.4,16.3 45.5,13.3 49.7,10.6 53.8,5.9 57.9,0.3 62.1,9.1 66.2,6.8 70.3,0.0 74.5,10.0 78.6,9.3 82.8,2.8 86.9,8.7 91.0,21.0 95.2,20.7 99.3,24.6 103.4,26.0 107.6,29.2 111.7,19.5 115.9,29.8 120.0,32.0" fill="none" stroke="#00c853" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="120.0" cy="32.0" r="2.5" fill="#00c853"/>
+</svg></div>
+    <div class="sc-mets">
+      <div class="sc-mt"><span>15日</span><span style="color:#00c853">-14.5%</span></div>
+      <div class="sc-mt"><span>45日</span><span style="color:#00c853">-0.9%</span></div>
+      <div class="sc-mt"><span>支撑</span><span>1.8</span></div>
+      <div class="sc-mt"><span>压力</span><span>1.93</span></div>
+      <div class="sc-mt"><span>回撤</span><span>-14.7%</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="sc" style="--dly:0.48s">
+  <div class="sc-top">
+    <div class="sc-left">
+      <svg width="48" height="48" viewBox="0 0 48 48">
+  <circle cx="24.0" cy="24.0" r="20.0" fill="none" stroke="#1e2434" stroke-width="4"/>
+  <circle cx="24.0" cy="24.0" r="20.0" fill="none" stroke="#00c853" stroke-width="4"
+    stroke-dasharray="39.0 125.7" stroke-linecap="round"
+    transform="rotate(-90 24.0 24.0)"/>
+  <text x="24.0" y="23.0" text-anchor="middle" dominant-baseline="middle" fill="#00c853" font-size="18" font-weight="700" font-family="monospace">31</text>
+</svg>
+    </div>
+    <div class="sc-info">
+      <div class="sc-hd">
+        <span class="sc-code">510300</span>
+        <span class="sc-name">沪深300ETF</span>
+        <span class="sc-sg" style="background:var(--green10);color:var(--green);border-color:var(--green20)">注意风险</span>
+      </div>
+      <div class="sc-pr">
+        <span class="sc-pv">4.79</span>
+        <span class="sc-pc" style="color:#00c853">-0.81%</span>
+        <span class="sc-chip">空头排列</span>
+        <span class="sc-chip">量0.48</span>
+        <span class="sc-chip">R44</span>
+      </div>
+      <div class="sc-bar"><div class="db"><span class="dl">价格</span><div class="dt"><div class="df" style="width:20%"></div></div><span class="dv">6</span></div><div class="db"><span class="dl">量能</span><div class="dt"><div class="df" style="width:55%"></div></div><span class="dv">11</span></div><div class="db"><span class="dl">趋势</span><div class="dt"><div class="df" style="width:0%"></div></div><span class="dv">0</span></div><div class="db"><span class="dl">强度</span><div class="dt"><div class="df" style="width:67%"></div></div><span class="dv">10</span></div><div class="db"><span class="dl">风控</span><div class="dt"><div class="df" style="width:40%"></div></div><span class="dv">4</span></div></div>
+    </div>
+  </div>
+  <div class="sc-bot">
+    <div class="sc-m"><svg width="40" height="40" viewBox="0 0 40 40">
+  <circle cx="20.0" cy="20.0" r="16.0" fill="none" stroke="#1e2434" stroke-width="4"/>
+  <circle cx="20.0" cy="20.0" r="16.0" fill="none" stroke="#00c853" stroke-width="4"
+    stroke-dasharray="31.2 100.5" stroke-linecap="round"
+    transform="rotate(-90 20.0 20.0)"/>
+  <text x="20.0" y="19.0" text-anchor="middle" dominant-baseline="middle" fill="#00c853" font-size="18" font-weight="700" font-family="monospace">31</text>
+</svg></div>
+    <div class="sc-ch"><svg width="120" height="32" viewBox="0 0 120 32" style="display:block">
+  <polygon points="0,32 0.0,20.3 4.1,14.1 8.3,11.5 12.4,15.0 16.6,22.5 20.7,32.0 24.8,24.1 29.0,27.9 33.1,30.9 37.2,24.8 41.4,15.6 45.5,16.5 49.7,12.1 53.8,9.7 57.9,0.0 62.1,13.5 66.2,11.3 70.3,3.9 74.5,16.7 78.6,12.0 82.8,6.5 86.9,8.5 91.0,21.9 95.2,19.5 99.3,19.5 103.4,24.1 107.6,26.6 111.7,15.9 115.9,23.8 120.0,27.4 120,32" fill="#00c85333"/>
+  <polyline points="0.0,20.3 4.1,14.1 8.3,11.5 12.4,15.0 16.6,22.5 20.7,32.0 24.8,24.1 29.0,27.9 33.1,30.9 37.2,24.8 41.4,15.6 45.5,16.5 49.7,12.1 53.8,9.7 57.9,0.0 62.1,13.5 66.2,11.3 70.3,3.9 74.5,16.7 78.6,12.0 82.8,6.5 86.9,8.5 91.0,21.9 95.2,19.5 99.3,19.5 103.4,24.1 107.6,26.6 111.7,15.9 115.9,23.8 120.0,27.4" fill="none" stroke="#00c853" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="120.0" cy="27.4" r="2.5" fill="#00c853"/>
+</svg></div>
+    <div class="sc-mets">
+      <div class="sc-mt"><span>15日</span><span style="color:#00c853">-5.9%</span></div>
+      <div class="sc-mt"><span>45日</span><span style="color:#00c853">-2.0%</span></div>
+      <div class="sc-mt"><span>支撑</span><span>4.79</span></div>
+      <div class="sc-mt"><span>压力</span><span>4.92</span></div>
+      <div class="sc-mt"><span>回撤</span><span>-5.9%</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="sc" style="--dly:0.54s">
+  <div class="sc-top">
+    <div class="sc-left">
+      <svg width="48" height="48" viewBox="0 0 48 48">
+  <circle cx="24.0" cy="24.0" r="20.0" fill="none" stroke="#1e2434" stroke-width="4"/>
+  <circle cx="24.0" cy="24.0" r="20.0" fill="none" stroke="#00c853" stroke-width="4"
+    stroke-dasharray="39.0 125.7" stroke-linecap="round"
+    transform="rotate(-90 24.0 24.0)"/>
+  <text x="24.0" y="23.0" text-anchor="middle" dominant-baseline="middle" fill="#00c853" font-size="18" font-weight="700" font-family="monospace">31</text>
+</svg>
+    </div>
+    <div class="sc-info">
+      <div class="sc-hd">
+        <span class="sc-code">512660</span>
+        <span class="sc-name">军工ETF</span>
+        <span class="sc-sg" style="background:var(--green10);color:var(--green);border-color:var(--green20)">注意风险</span>
+      </div>
+      <div class="sc-pr">
+        <span class="sc-pv">1.20</span>
+        <span class="sc-pc" style="color:#00c853">-6.64%</span>
+        <span class="sc-chip">空头排列</span>
+        <span class="sc-chip">量1.17</span>
+        <span class="sc-chip">R40</span>
+      </div>
+      <div class="sc-bar"><div class="db"><span class="dl">价格</span><div class="dt"><div class="df" style="width:13%"></div></div><span class="dv">4</span></div><div class="db"><span class="dl">量能</span><div class="dt"><div class="df" style="width:75%"></div></div><span class="dv">15</span></div><div class="db"><span class="dl">趋势</span><div class="dt"><div class="df" style="width:0%"></div></div><span class="dv">0</span></div><div class="db"><span class="dl">强度</span><div class="dt"><div class="df" style="width:53%"></div></div><span class="dv">8</span></div><div class="db"><span class="dl">风控</span><div class="dt"><div class="df" style="width:40%"></div></div><span class="dv">4</span></div></div>
+    </div>
+  </div>
+  <div class="sc-bot">
+    <div class="sc-m"><svg width="40" height="40" viewBox="0 0 40 40">
+  <circle cx="20.0" cy="20.0" r="16.0" fill="none" stroke="#1e2434" stroke-width="4"/>
+  <circle cx="20.0" cy="20.0" r="16.0" fill="none" stroke="#00c853" stroke-width="4"
+    stroke-dasharray="31.2 100.5" stroke-linecap="round"
+    transform="rotate(-90 20.0 20.0)"/>
+  <text x="20.0" y="19.0" text-anchor="middle" dominant-baseline="middle" fill="#00c853" font-size="18" font-weight="700" font-family="monospace">31</text>
+</svg></div>
+    <div class="sc-ch"><svg width="120" height="32" viewBox="0 0 120 32" style="display:block">
+  <polygon points="0,32 0.0,9.8 4.1,10.4 8.3,8.5 12.4,7.0 16.6,8.2 20.7,24.7 24.8,20.1 29.0,24.1 33.1,25.0 37.2,16.8 41.4,10.7 45.5,10.4 49.7,3.7 53.8,3.4 57.9,0.9 62.1,14.9 66.2,11.9 70.3,12.5 74.5,18.3 78.6,20.4 82.8,6.4 86.9,3.0 91.0,13.7 95.2,0.0 99.3,5.2 103.4,17.4 107.6,25.0 111.7,17.7 115.9,6.1 120.0,32.0 120,32" fill="#00c85333"/>
+  <polyline points="0.0,9.8 4.1,10.4 8.3,8.5 12.4,7.0 16.6,8.2 20.7,24.7 24.8,20.1 29.0,24.1 33.1,25.0 37.2,16.8 41.4,10.7 45.5,10.4 49.7,3.7 53.8,3.4 57.9,0.9 62.1,14.9 66.2,11.9 70.3,12.5 74.5,18.3 78.6,20.4 82.8,6.4 86.9,3.0 91.0,13.7 95.2,0.0 99.3,5.2 103.4,17.4 107.6,25.0 111.7,17.7 115.9,6.1 120.0,32.0" fill="none" stroke="#00c853" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="120.0" cy="32.0" r="2.5" fill="#00c853"/>
+</svg></div>
+    <div class="sc-mets">
+      <div class="sc-mt"><span>15日</span><span style="color:#00c853">-7.9%</span></div>
+      <div class="sc-mt"><span>45日</span><span style="color:#00c853">-18.9%</span></div>
+      <div class="sc-mt"><span>支撑</span><span>1.2</span></div>
+      <div class="sc-mt"><span>压力</span><span>1.28</span></div>
+      <div class="sc-mt"><span>回撤</span><span>-8.1%</span></div>
+    </div>
+  </div>
+</div></div>
+
+<!-- Tweet Panel -->
+<div id="panel-tweet" class="panel">
+  <div class="tp-box">
+    <div class="tp-ttl"><span>推文摘要</span><button class="tp-btn" onclick="copyTweet()" id="cpBtn">复制</button></div>
+    <div class="tp-cnt" id="tweetContent">量化动量选股 2026-07-13 收盘扫描<br>股票10只 + ETF10只<br><br>【股票 Top 3】<br> 1. 中芯国际(688981) 81分 强烈买入  现价168.09<br> 2. 美的集团(000333) 67分 持有  现价80.16<br> 3. 长江电力(600900) 61分 持有  现价28.18<br><br>【ETF Top 3】<br> 1. 科创50ETF(588000) 72分 买入  现价2.17<br> 2. 养殖ETF(159865) 59分 观望  现价0.52<br> 3. 纳指ETF(513100) 43分 注意风险  现价2.17<br><br>买入信号 1只<br>风险预警 6只<br><br>市场偏弱 控制仓位注意风险<br><br>量化模型仅供参考 不构成投资建议</div>
+  </div>
+</div>
+
+<div class="ft">量化模型仅供参考 不构成投资建议<br>CTAAgents v4.0 | 2026-07-13 10:50</div>
+
+</div>
+
+<script>
+function switchTab(name){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('on'));
+  document.querySelector(`.tab[data-tab="${name}"]`).classList.add('on');
+  document.getElementById(`panel-${name}`).classList.add('on');
+  window.location.hash=name;
+}
+(function(){
+  var h=window.location.hash.slice(1);
+  if(h&&['stock','etf','tweet'].includes(h)) switchTab(h);
+})();
+function copyTweet(){
+  var t=document.getElementById('tweetContent').textContent;
+  navigator.clipboard.writeText(t).then(function(){
+    var btn=document.getElementById('cpBtn');
+    btn.textContent='已复制';
+    btn.style.background='var(--green10)';btn.style.color='var(--green)';
+    setTimeout(function(){btn.textContent='复制';btn.style.background='';btn.style.color='';},2000);
+  });
+}
+// 进度条动画
+document.addEventListener('DOMContentLoaded',function(){
+  document.querySelectorAll('.df').forEach(function(el){
+    var w=el.style.width;
+    el.style.width='0';
+    setTimeout(function(){el.style.width=w;},200);
+  });
+});
+</script>
+</body>
+</html>

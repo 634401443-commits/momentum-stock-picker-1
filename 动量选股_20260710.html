@@ -1,0 +1,1560 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>量化动量选股系统 2026-07-10 (最近交易日)</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+:root {
+  --bg: #0a0e17;
+  --bg-card: #131722;
+  --bg-card-hover: #182033;
+  --border: #1e2434;
+  --border-hover: #2a3548;
+  --text: #dee5f0;
+  --text-2: #8b95a8;
+  --text-3: #4a5568;
+  --accent: #2962ff;
+  --red: #e53935;
+  --green: #00c853;
+  --amber: #ffb74d;
+  --radius: 14px;
+}
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', 'Segoe UI', sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  min-height: 100vh;
+}
+.container { max-width: 1280px; margin: 0 auto; padding: 20px; }
+
+/* ===== Header ===== */
+.header {
+  background: linear-gradient(135deg, #131722 0%, #0d1521 100%);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 28px 32px;
+  margin-bottom: 20px;
+  position: relative;
+  overflow: hidden;
+}
+.header::before {
+  content: '';
+  position: absolute;
+  top: -50%; right: -10%;
+  width: 400px; height: 400px;
+  background: radial-gradient(circle, rgba(41,98,255,0.08) 0%, transparent 70%);
+  pointer-events: none;
+}
+.header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  position: relative;
+}
+.header-title {
+  display: flex; align-items: center; gap: 14px;
+}
+.header-logo {
+  width: 44px; height: 44px;
+  background: linear-gradient(135deg, #2962ff, #6200ea);
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px; font-weight: 800; color: #fff;
+}
+.header h1 {
+  font-size: 24px; font-weight: 700; color: var(--text);
+}
+.header .subtitle {
+  color: var(--text-2); font-size: 13px; margin-top: 2px;
+}
+.header-meta {
+  display: flex; gap: 12px; align-items: center; flex-wrap: wrap;
+}
+.meta-chip {
+  background: rgba(41,98,255,0.1);
+  color: var(--accent);
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid rgba(41,98,255,0.2);
+}
+.meta-time { color: var(--text-2); font-size: 12px; }
+
+/* ===== Dashboard ===== */
+.dashboard {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+.dash-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  transition: border-color 0.2s;
+}
+.dash-card:hover { border-color: var(--border-hover); }
+.dash-card .dash-label {
+  font-size: 11px; color: var(--text-2); text-transform: uppercase;
+  letter-spacing: 1px; margin-bottom: 8px;
+}
+.dash-card .dash-value {
+  font-size: 28px; font-weight: 700; font-family: 'SF Mono', 'Consolas', monospace;
+}
+.dash-card .dash-sub { font-size: 12px; color: var(--text-2); margin-top: 4px; }
+
+/* 市场温度计 */
+.temp-bar {
+  height: 6px; border-radius: 3px;
+  background: linear-gradient(90deg, var(--green) 0%, var(--amber) 50%, var(--red) 100%);
+  margin-top: 10px;
+  position: relative;
+}
+.temp-pointer {
+  position: absolute;
+  top: -3px;
+  width: 4px; height: 12px;
+  background: #fff;
+  border-radius: 2px;
+  box-shadow: 0 0 6px rgba(255,255,255,0.5);
+  transition: left 0.6s ease;
+}
+
+/* ===== Top Pick ===== */
+.top-pick {
+  display: flex; align-items: center; gap: 14px;
+  background: linear-gradient(135deg, rgba(229,57,53,0.08), rgba(229,57,53,0.02));
+  border: 1px solid rgba(229,57,53,0.2);
+  border-radius: var(--radius);
+  padding: 16px 20px;
+  margin-bottom: 20px;
+}
+.top-pick-badge {
+  background: linear-gradient(135deg, #e53935, #ff6f00);
+  color: #fff;
+  padding: 4px 12px;
+  border-radius: 8px;
+  font-size: 12px; font-weight: 700;
+  letter-spacing: 1px;
+}
+.top-pick-info { display: flex; flex-direction: column; }
+.top-pick-name { font-size: 18px; font-weight: 700; }
+.top-pick-code { font-size: 12px; color: var(--text-2); font-family: monospace; }
+.top-pick-score {
+  font-size: 32px; font-weight: 800; font-family: monospace;
+  margin-left: auto;
+}
+.top-pick-signal {
+  background: rgba(229,57,53,0.15); color: var(--red);
+  padding: 4px 12px; border-radius: 8px;
+  font-size: 13px; font-weight: 600;
+}
+.top-pick-price { font-size: 16px; color: var(--text-2); font-family: monospace; }
+
+/* ===== Section ===== */
+.section {
+  margin-bottom: 24px;
+}
+.section-header {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 14px;
+}
+.section-header h2 {
+  font-size: 18px; font-weight: 700;
+}
+.section-line {
+  flex: 1; height: 1px;
+  background: linear-gradient(90deg, var(--border), transparent);
+}
+.section-stats {
+  display: flex; gap: 8px;
+}
+.section-stat {
+  display: flex; align-items: center; gap: 4px;
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.section-stat.buy { background: rgba(229,57,53,0.1); color: var(--red); }
+.section-stat.hold { background: rgba(255,183,77,0.1); color: var(--amber); }
+.section-stat.sell { background: rgba(0,200,83,0.1); color: var(--green); }
+
+/* ===== Stock Cards Grid ===== */
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(560px, 1fr));
+  gap: 14px;
+}
+.stock-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px;
+  display: flex;
+  gap: 16px;
+  transition: all 0.25s;
+  opacity: 0;
+  animation: cardIn 0.5s ease forwards;
+}
+.stock-card:hover {
+  border-color: var(--border-hover);
+  background: var(--bg-card-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+}
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.card-left {
+  flex-shrink: 0;
+  display: flex; align-items: flex-start;
+  padding-top: 2px;
+}
+.card-main {
+  flex: 1; min-width: 0;
+}
+.card-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 8px;
+}
+.stock-info { display: flex; align-items: center; gap: 8px; }
+.stock-code {
+  color: var(--text-2); font-size: 12px;
+  font-family: 'SF Mono', 'Consolas', monospace;
+  background: rgba(255,255,255,0.05);
+  padding: 2px 6px; border-radius: 4px;
+}
+.stock-name {
+  font-size: 16px; font-weight: 700; color: var(--text);
+}
+.signal-badge {
+  font-size: 12px; padding: 4px 12px;
+  border-radius: 8px; font-weight: 600;
+  border: 1px solid;
+  white-space: nowrap;
+}
+.price-row {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 14px; flex-wrap: wrap;
+}
+.price-main {
+  font-size: 24px; font-weight: 700;
+  font-family: 'SF Mono', 'Consolas', monospace;
+  color: var(--text);
+}
+.price-change {
+  font-size: 15px; font-weight: 700;
+  font-family: 'SF Mono', 'Consolas', monospace;
+}
+.tag-chip {
+  font-size: 11px; padding: 3px 8px;
+  border-radius: 6px;
+  background: rgba(255,255,255,0.04);
+  color: var(--text-2);
+  border: 1px solid rgba(255,255,255,0.06);
+}
+
+.card-body {
+  display: flex; gap: 16px;
+  margin-bottom: 12px;
+}
+.bars-section {
+  flex: 1; min-width: 0;
+}
+.dim-bar {
+  display: flex; align-items: center; gap: 8px;
+  margin: 3px 0;
+}
+.dim-label {
+  width: 56px; flex-shrink: 0;
+  font-size: 11px; color: var(--text-2);
+}
+.dim-track {
+  flex: 1; height: 8px;
+  background: rgba(255,255,255,0.04);
+  border-radius: 4px; overflow: hidden;
+}
+.dim-fill {
+  height: 100%; border-radius: 4px;
+  transition: width 0.6s ease;
+  min-width: 2px;
+}
+.dim-val {
+  width: 42px; flex-shrink: 0;
+  font-size: 11px; color: var(--text-2);
+  text-align: right;
+  font-family: 'SF Mono', 'Consolas', monospace;
+}
+
+.chart-section {
+  display: flex; flex-direction: column;
+  align-items: center; gap: 4px;
+  flex-shrink: 0;
+}
+.radar-wrap { }
+.spark-wrap { }
+
+.key-metrics {
+  display: flex; gap: 6px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+.metric {
+  flex: 1; text-align: center;
+  padding: 4px 0;
+}
+.metric-label {
+  display: block; font-size: 10px;
+  color: var(--text-2); margin-bottom: 2px;
+}
+.metric-value {
+  font-size: 13px; font-weight: 700;
+  font-family: 'SF Mono', 'Consolas', monospace;
+  color: var(--text);
+}
+
+/* ===== Tweet Box ===== */
+.tweet-box {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-top: 20px;
+}
+.tweet-title {
+  font-size: 14px; font-weight: 700;
+  color: var(--accent);
+  margin-bottom: 10px;
+  display: flex; align-items: center; gap: 6px;
+}
+.tweet-content {
+  font-size: 13px; line-height: 1.8;
+  color: var(--text-2);
+  white-space: pre-wrap;
+  font-family: 'SF Mono', 'Consolas', monospace;
+}
+.copy-btn {
+  margin-left: auto;
+  background: rgba(41,98,255,0.1);
+  color: var(--accent);
+  border: 1px solid rgba(41,98,255,0.2);
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.copy-btn:hover {
+  background: rgba(41,98,255,0.2);
+}
+
+/* ===== Footer ===== */
+.footer {
+  text-align: center;
+  padding: 24px 20px;
+  color: var(--text-3);
+  font-size: 12px;
+  border-top: 1px solid var(--border);
+  margin-top: 24px;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 1200px) {
+  .dashboard { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 640px) {
+  .container { padding: 12px; }
+  .cards-grid { grid-template-columns: 1fr; }
+  .stock-card { flex-direction: column; }
+  .card-left { display: none; }
+  .card-body { flex-direction: column; }
+  .dashboard { grid-template-columns: 1fr; }
+  .header h1 { font-size: 20px; }
+  .header { padding: 20px; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+<!-- Header -->
+<div class="header">
+  <div class="header-top">
+    <div class="header-title">
+      <div class="header-logo">Q</div>
+      <div>
+        <h1>量化动量选股系统</h1>
+        <div class="subtitle">五维动量打分模型 | 股票10只 + ETF10只</div>
+      </div>
+    </div>
+    <div class="header-meta">
+      <span class="meta-chip">2026-07-10 (最近交易日)</span>
+      <span class="meta-time">扫描时间 19:32:19</span>
+    </div>
+  </div>
+</div>
+
+<!-- Dashboard -->
+<div class="dashboard">
+  <div class="dash-card">
+    <div class="dash-label">市场温度</div>
+    <div class="dash-value" style="color:#00c853">市场偏弱</div>
+    <div class="dash-sub">控制仓位注意风险 | 均分 49.7</div>
+    <div class="temp-bar">
+      <div class="temp-pointer" style="left:50%"></div>
+    </div>
+  </div>
+  <div class="dash-card">
+    <div class="dash-label">买入信号</div>
+    <div class="dash-value" style="color:var(--red)">2</div>
+    <div class="dash-sub">股票 2 | ETF 0</div>
+  </div>
+  <div class="dash-card">
+    <div class="dash-label">持有/观望</div>
+    <div class="dash-value" style="color:var(--amber)">8</div>
+    <div class="dash-sub">股票 4 | ETF 4</div>
+  </div>
+  <div class="dash-card">
+    <div class="dash-label">注意/回避</div>
+    <div class="dash-value" style="color:var(--green)">10</div>
+    <div class="dash-sub">股票 4 | ETF 6</div>
+  </div>
+</div>
+
+<!-- Top Pick -->
+
+<div class="top-pick">
+  <div class="top-pick-badge">TOP 1</div>
+  <div class="top-pick-info">
+    <span class="top-pick-name">中芯国际</span>
+    <span class="top-pick-code">688981</span>
+  </div>
+  <div class="top-pick-score" style="color:#e53935">83</div>
+  <div class="top-pick-signal">强烈买入</div>
+  <div class="top-pick-price">163.02</div>
+</div>
+
+<!-- Stocks Section -->
+<div class="section">
+  <div class="section-header">
+    <h2>股票</h2>
+    <div class="section-line"></div>
+    <div class="section-stats">
+      <span class="section-stat buy">买入 2</span>
+      <span class="section-stat hold">持有 4</span>
+      <span class="section-stat sell">回避 4</span>
+    </div>
+  </div>
+  <div class="cards-grid">
+    
+<div class="stock-card" style="animation-delay:0.0s">
+  <div class="card-left">
+    <svg width="52" height="52" viewBox="0 0 52 52">
+  <circle cx="26.0" cy="26.0" r="22.0" fill="none" stroke="#1e2434" stroke-width="4"/>
+  <circle cx="26.0" cy="26.0" r="22.0" fill="none" stroke="#e53935" stroke-width="4"
+    stroke-dasharray="114.7 138.2" stroke-linecap="round"
+    transform="rotate(-90 26.0 26.0)"/>
+  <text x="26.0" y="25.0" text-anchor="middle" dominant-baseline="middle" fill="#e53935" font-size="18" font-weight="700" font-family="monospace">83</text>
+</svg>
+  </div>
+  <div class="card-main">
+    <div class="card-header">
+      <div class="stock-info">
+        <span class="stock-code">688981</span>
+        <span class="stock-name">中芯国际</span>
+      </div>
+      <span class="signal-badge" style="background:rgba(229,57,53,0.15);color:#e53935;border-color:rgba(229,57,53,0.4)">强烈买入</span>
+    </div>
+    <div class="price-row">
+      <span class="price-main">163.02</span>
+      <span class="price-change" style="color:#00c853">-5.77%</span>
+      <span class="tag-chip">多头排列</span>
+      <span class="tag-chip">量比 1.02</span>
+      <span class="tag-chip">RSI 60.8</span>
+    </div>
+    <div class="card-body">
+      <div class="bars-section"><div class="dim-bar"><span class="dim-label">价格动量</span><div class="dim-track"><div class="dim-fill" style="width:100%;background:#5c6bc0"></div></div><span class="dim-val">30/30</span></div><div class="dim-bar"><span class="dim-label">成交量</span><div class="dim-track"><div class="dim-fill" style="width:55%;background:#26a69a"></div></div><span class="dim-val">11/20</span></div><div class="dim-bar"><span class="dim-label">趋势结构</span><div class="dim-track"><div class="dim-fill" style="width:100%;background:#e53935"></div></div><span class="dim-val">25/25</span></div><div class="dim-bar"><span class="dim-label">相对强度</span><div class="dim-track"><div class="dim-fill" style="width:87%;background:#ab47bc"></div></div><span class="dim-val">13/15</span></div><div class="dim-bar"><span class="dim-label">风险控制</span><div class="dim-track"><div class="dim-fill" style="width:40%;background:#ff7043"></div></div><span class="dim-val">4/10</span></div></div>
+      <div class="chart-section">
+        <div class="radar-wrap"><svg width="88" height="88" viewBox="0 0 88 88" style="display:block">
+  <polygon points="44.0,34.8 52.8,41.1 49.4,51.5 38.6,51.5 35.2,41.1" fill="none" stroke="#2a3548" stroke-width="0.5"/><polygon points="44.0,25.5 61.6,38.3 54.9,59.0 33.1,59.0 26.4,38.3" fill="none" stroke="#2a3548" stroke-width="0.5"/><polygon points="44.0,16.0 70.6,35.3 60.5,66.7 27.5,66.7 17.4,35.3" fill="none" stroke="#2a3548" stroke-width="0.5"/>
+  <line x1="44.0" y1="44.0" x2="44.0" y2="16.0" stroke="#2a3548" stroke-width="0.5"/><line x1="44.0" y1="44.0" x2="70.6" y2="35.3" stroke="#2a3548" stroke-width="0.5"/><line x1="44.0" y1="44.0" x2="60.5" y2="66.7" stroke="#2a3548" stroke-width="0.5"/><line x1="44.0" y1="44.0" x2="27.5" y2="66.7" stroke="#2a3548" stroke-width="0.5"/><line x1="44.0" y1="44.0" x2="17.4" y2="35.3" stroke="#2a3548" stroke-width="0.5"/>
+  <polygon points="44.0,16.0 58.6,39.2 60.5,66.7 29.7,63.6 33.3,40.5" fill="#2962ff33" stroke="#2962ff" stroke-width="1.5"/>
+  <circle cx="44.0" cy="16.0" r="1.5" fill="#2962ff"/><circle cx="58.6" cy="39.2" r="1.5" fill="#2962ff"/><circle cx="60.5" cy="66.7" r="1.5" fill="#2962ff"/><circle cx="29.7" cy="63.6" r="1.5" fill="#2962ff"/><circle cx="33.3" cy="40.5" r="1.5" fill="#2962ff"/>
+  <text x="44.0" y="8.0" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">价格</text><text x="78.2" y="32.9" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">量能</text><text x="65.2" y="73.1" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">趋势</text><text x="22.8" y="73.1" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">强度</text><text x="9.8" y="32.9" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">风险</text>
+</svg></div>
+        <div class="spark-wrap"><svg width="130" height="38" viewBox="0 0 130 38" style="display:block">
+  <polygon points="0,38 0.0,24.6 4.5,30.2 9.0,30.1 13.4,29.0 17.9,28.4 22.4,33.9 26.9,38.0 31.4,34.0 35.9,35.5 40.3,33.9 44.8,35.8 49.3,31.6 53.8,31.9 58.3,28.5 62.8,24.0 67.2,20.4 71.7,23.3 76.2,16.0 80.7,12.0 85.2,18.0 89.7,16.4 94.1,10.5 98.6,13.8 103.1,21.5 107.6,24.3 112.1,21.6 116.6,20.5 121.0,15.5 125.5,0.0 130.0,7.4 130,38" fill="#e5393533"/>
+  <polyline points="0.0,24.6 4.5,30.2 9.0,30.1 13.4,29.0 17.9,28.4 22.4,33.9 26.9,38.0 31.4,34.0 35.9,35.5 40.3,33.9 44.8,35.8 49.3,31.6 53.8,31.9 58.3,28.5 62.8,24.0 67.2,20.4 71.7,23.3 76.2,16.0 80.7,12.0 85.2,18.0 89.7,16.4 94.1,10.5 98.6,13.8 103.1,21.5 107.6,24.3 112.1,21.6 116.6,20.5 121.0,15.5 125.5,0.0 130.0,7.4" fill="none" stroke="#e53935" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="130.0" cy="7.4" r="2.5" fill="#e53935"/>
+</svg></div>
+      </div>
+    </div>
+    <div class="key-metrics">
+      <div class="metric"><span class="metric-label">15日</span><span class="metric-value" style="color:#e53935">+15.9%</span></div>
+      <div class="metric"><span class="metric-label">45日</span><span class="metric-value" style="color:#e53935">+30.1%</span></div>
+      <div class="metric"><span class="metric-label">支撑</span><span class="metric-value">143.99</span></div>
+      <div class="metric"><span class="metric-label">压力</span><span class="metric-value">173.0</span></div>
+      <div class="metric"><span class="metric-label">回撤</span><span class="metric-value" style="color:#ffb74d">-5.8%</span></div>
+    </div>
+  </div>
+</div>
+<div class="stock-card" style="animation-delay:0.06s">
+  <div class="card-left">
+    <svg width="52" height="52" viewBox="0 0 52 52">
+  <circle cx="26.0" cy="26.0" r="22.0" fill="none" stroke="#1e2434" stroke-width="4"/>
+  <circle cx="26.0" cy="26.0" r="22.0" fill="none" stroke="#e53935" stroke-width="4"
+    stroke-dasharray="99.5 138.2" stroke-linecap="round"
+    transform="rotate(-90 26.0 26.0)"/>
+  <text x="26.0" y="25.0" text-anchor="middle" dominant-baseline="middle" fill="#e53935" font-size="18" font-weight="700" font-family="monospace">72</text>
+</svg>
+  </div>
+  <div class="card-main">
+    <div class="card-header">
+      <div class="stock-info">
+        <span class="stock-code">600900</span>
+        <span class="stock-name">长江电力</span>
+      </div>
+      <span class="signal-badge" style="background:rgba(229,57,53,0.15);color:#e53935;border-color:rgba(229,57,53,0.4)">买入</span>
+    </div>
+    <div class="price-row">
+      <span class="price-main">28.03</span>
+      <span class="price-change" style="color:#e53935">+0.94%</span>
+      <span class="tag-chip">多头排列</span>
+      <span class="tag-chip">量比 1.01</span>
+      <span class="tag-chip">RSI 63.2</span>
+    </div>
+    <div class="card-body">
+      <div class="bars-section"><div class="dim-bar"><span class="dim-label">价格动量</span><div class="dim-track"><div class="dim-fill" style="width:60%;background:#5c6bc0"></div></div><span class="dim-val">18/30</span></div><div class="dim-bar"><span class="dim-label">成交量</span><div class="dim-track"><div class="dim-fill" style="width:55%;background:#26a69a"></div></div><span class="dim-val">11/20</span></div><div class="dim-bar"><span class="dim-label">趋势结构</span><div class="dim-track"><div class="dim-fill" style="width:100%;background:#e53935"></div></div><span class="dim-val">25/25</span></div><div class="dim-bar"><span class="dim-label">相对强度</span><div class="dim-track"><div class="dim-fill" style="width:87%;background:#ab47bc"></div></div><span class="dim-val">13/15</span></div><div class="dim-bar"><span class="dim-label">风险控制</span><div class="dim-track"><div class="dim-fill" style="width:50%;background:#ff7043"></div></div><span class="dim-val">5/10</span></div></div>
+      <div class="chart-section">
+        <div class="radar-wrap"><svg width="88" height="88" viewBox="0 0 88 88" style="display:block">
+  <polygon points="44.0,34.8 52.8,41.1 49.4,51.5 38.6,51.5 35.2,41.1" fill="none" stroke="#2a3548" stroke-width="0.5"/><polygon points="44.0,25.5 61.6,38.3 54.9,59.0 33.1,59.0 26.4,38.3" fill="none" stroke="#2a3548" stroke-width="0.5"/><polygon points="44.0,16.0 70.6,35.3 60.5,66.7 27.5,66.7 17.4,35.3" fill="none" stroke="#2a3548" stroke-width="0.5"/>
+  <line x1="44.0" y1="44.0" x2="44.0" y2="16.0" stroke="#2a3548" stroke-width="0.5"/><line x1="44.0" y1="44.0" x2="70.6" y2="35.3" stroke="#2a3548" stroke-width="0.5"/><line x1="44.0" y1="44.0" x2="60.5" y2="66.7" stroke="#2a3548" stroke-width="0.5"/><line x1="44.0" y1="44.0" x2="27.5" y2="66.7" stroke="#2a3548" stroke-width="0.5"/><line x1="44.0" y1="44.0" x2="17.4" y2="35.3" stroke="#2a3548" stroke-width="0.5"/>
+  <polygon points="44.0,27.2 58.6,39.2 60.5,66.7 29.7,63.6 30.7,39.7" fill="#2962ff33" stroke="#2962ff" stroke-width="1.5"/>
+  <circle cx="44.0" cy="27.2" r="1.5" fill="#2962ff"/><circle cx="58.6" cy="39.2" r="1.5" fill="#2962ff"/><circle cx="60.5" cy="66.7" r="1.5" fill="#2962ff"/><circle cx="29.7" cy="63.6" r="1.5" fill="#2962ff"/><circle cx="30.7" cy="39.7" r="1.5" fill="#2962ff"/>
+  <text x="44.0" y="8.0" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">价格</text><text x="78.2" y="32.9" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">量能</text><text x="65.2" y="73.1" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">趋势</text><text x="22.8" y="73.1" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">强度</text><text x="9.8" y="32.9" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">风险</text>
+</svg></div>
+        <div class="spark-wrap"><svg width="130" height="38" viewBox="0 0 130 38" style="display:block">
+  <polygon points="0,38 0.0,9.8 4.5,9.4 9.0,5.9 13.4,7.2 17.9,10.3 22.4,12.4 26.9,14.2 31.4,12.0 35.9,10.9 40.3,7.2 44.8,0.0 49.3,13.1 53.8,20.1 58.3,23.6 62.8,29.9 67.2,24.7 71.7,26.0 76.2,31.0 80.7,38.0 85.2,30.1 89.7,26.6 94.1,33.4 98.6,30.3 103.1,24.5 107.6,22.7 112.1,20.1 116.6,16.0 121.0,8.3 125.5,9.4 130.0,4.6 130,38" fill="#e5393533"/>
+  <polyline points="0.0,9.8 4.5,9.4 9.0,5.9 13.4,7.2 17.9,10.3 22.4,12.4 26.9,14.2 31.4,12.0 35.9,10.9 40.3,7.2 44.8,0.0 49.3,13.1 53.8,20.1 58.3,23.6 62.8,29.9 67.2,24.7 71.7,26.0 76.2,31.0 80.7,38.0 85.2,30.1 89.7,26.6 94.1,33.4 98.6,30.3 103.1,24.5 107.6,22.7 112.1,20.1 116.6,16.0 121.0,8.3 125.5,9.4 130.0,4.6" fill="none" stroke="#e53935" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="130.0" cy="4.6" r="2.5" fill="#e53935"/>
+</svg></div>
+      </div>
+    </div>
+    <div class="key-metrics">
+      <div class="metric"><span class="metric-label">15日</span><span class="metric-value" style="color:#e53935">+5.1%</span></div>
+      <div class="metric"><span class="metric-label">45日</span><span class="metric-value" style="color:#e53935">+3.6%</span></div>
+      <div class="metric"><span class="metric-label">支撑</span><span class="metric-value">27.19</span></div>
+      <div class="metric"><span class="metric-label">压力</span><span class="metric-value">28.03</span></div>
+      <div class="metric"><span class="metric-label">回撤</span><span class="metric-value" style="color:#e53935">-0.9%</span></div>
+    </div>
+  </div>
+</div>
+<div class="stock-card" style="animation-delay:0.12s">
+  <div class="card-left">
+    <svg width="52" height="52" viewBox="0 0 52 52">
+  <circle cx="26.0" cy="26.0" r="22.0" fill="none" stroke="#1e2434" stroke-width="4"/>
+  <circle cx="26.0" cy="26.0" r="22.0" fill="none" stroke="#ffb74d" stroke-width="4"
+    stroke-dasharray="92.6 138.2" stroke-linecap="round"
+    transform="rotate(-90 26.0 26.0)"/>
+  <text x="26.0" y="25.0" text-anchor="middle" dominant-baseline="middle" fill="#ffb74d" font-size="18" font-weight="700" font-family="monospace">67</text>
+</svg>
+  </div>
+  <div class="card-main">
+    <div class="card-header">
+      <div class="stock-info">
+        <span class="stock-code">000333</span>
+        <span class="stock-name">美的集团</span>
+      </div>
+      <span class="signal-badge" style="background:rgba(255,183,77,0.15);color:#ffb74d;border-color:rgba(255,183,77,0.4)">持有</span>
+    </div>
+    <div class="price-row">
+      <span class="price-main">78.99</span>
+      <span class="price-change" style="color:#00c853">-0.43%</span>
+      <span class="tag-chip">多头排列</span>
+      <span class="tag-chip">量比 0.81</span>
+      <span class="tag-chip">RSI 56.4</span>
+    </div>
+    <div class="card-body">
+      <div class="bars-section"><div class="dim-bar"><span class="dim-label">价格动量</span><div class="dim-track"><div class="dim-fill" style="width:60%;background:#5c6bc0"></div></div><span class="dim-val">18/30</span></div><div class="dim-bar"><span class="dim-label">成交量</span><div class="dim-track"><div class="dim-fill" style="width:75%;background:#26a69a"></div></div><span class="dim-val">15/20</span></div><div class="dim-bar"><span class="dim-label">趋势结构</span><div class="dim-track"><div class="dim-fill" style="width:76%;background:#e53935"></div></div><span class="dim-val">19/25</span></div><div class="dim-bar"><span class="dim-label">相对强度</span><div class="dim-track"><div class="dim-fill" style="width:67%;background:#ab47bc"></div></div><span class="dim-val">10/15</span></div><div class="dim-bar"><span class="dim-label">风险控制</span><div class="dim-track"><div class="dim-fill" style="width:50%;background:#ff7043"></div></div><span class="dim-val">5/10</span></div></div>
+      <div class="chart-section">
+        <div class="radar-wrap"><svg width="88" height="88" viewBox="0 0 88 88" style="display:block">
+  <polygon points="44.0,34.8 52.8,41.1 49.4,51.5 38.6,51.5 35.2,41.1" fill="none" stroke="#2a3548" stroke-width="0.5"/><polygon points="44.0,25.5 61.6,38.3 54.9,59.0 33.1,59.0 26.4,38.3" fill="none" stroke="#2a3548" stroke-width="0.5"/><polygon points="44.0,16.0 70.6,35.3 60.5,66.7 27.5,66.7 17.4,35.3" fill="none" stroke="#2a3548" stroke-width="0.5"/>
+  <line x1="44.0" y1="44.0" x2="44.0" y2="16.0" stroke="#2a3548" stroke-width="0.5"/><line x1="44.0" y1="44.0" x2="70.6" y2="35.3" stroke="#2a3548" stroke-width="0.5"/><line x1="44.0" y1="44.0" x2="60.5" y2="66.7" stroke="#2a3548" stroke-width="0.5"/><line x1="44.0" y1="44.0" x2="27.5" y2="66.7" stroke="#2a3548" stroke-width="0.5"/><line x1="44.0" y1="44.0" x2="17.4" y2="35.3" stroke="#2a3548" stroke-width="0.5"/>
+  <polygon points="44.0,27.2 64.0,37.5 56.5,61.2 33.0,59.1 30.7,39.7" fill="#2962ff33" stroke="#2962ff" stroke-width="1.5"/>
+  <circle cx="44.0" cy="27.2" r="1.5" fill="#2962ff"/><circle cx="64.0" cy="37.5" r="1.5" fill="#2962ff"/><circle cx="56.5" cy="61.2" r="1.5" fill="#2962ff"/><circle cx="33.0" cy="59.1" r="1.5" fill="#2962ff"/><circle cx="30.7" cy="39.7" r="1.5" fill="#2962ff"/>
+  <text x="44.0" y="8.0" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">价格</text><text x="78.2" y="32.9" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">量能</text><text x="65.2" y="73.1" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">趋势</text><text x="22.8" y="73.1" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">强度</text><text x="9.8" y="32.9" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">风险</text>
+</svg></div>
+        <div class="spark-wrap"><svg width="130" height="38" viewBox="0 0 130 38" style="display:block">
+  <polygon points="0,38 0.0,19.3 4.5,15.7 9.0,11.8 13.4,11.8 17.9,12.6 22.4,15.7 26.9,10.7 31.4,12.8 35.9,6.2 40.3,0.0 44.8,9.1 49.3,19.0 53.8,27.4 58.3,26.3 62.8,31.6 67.2,30.4 71.7,31.3 76.2,37.4 80.7,38.0 85.2,29.2 89.7,18.7 94.1,26.2 98.6,18.2 103.1,19.8 107.6,15.7 112.1,7.0 116.6,10.8 121.0,9.5 125.5,9.9 130.0,11.3 130,38" fill="#e5393533"/>
+  <polyline points="0.0,19.3 4.5,15.7 9.0,11.8 13.4,11.8 17.9,12.6 22.4,15.7 26.9,10.7 31.4,12.8 35.9,6.2 40.3,0.0 44.8,9.1 49.3,19.0 53.8,27.4 58.3,26.3 62.8,31.6 67.2,30.4 71.7,31.3 76.2,37.4 80.7,38.0 85.2,29.2 89.7,18.7 94.1,26.2 98.6,18.2 103.1,19.8 107.6,15.7 112.1,7.0 116.6,10.8 121.0,9.5 125.5,9.9 130.0,11.3" fill="none" stroke="#e53935" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="130.0" cy="11.3" r="2.5" fill="#e53935"/>
+</svg></div>
+      </div>
+    </div>
+    <div class="key-metrics">
+      <div class="metric"><span class="metric-label">15日</span><span class="metric-value" style="color:#e53935">+6.3%</span></div>
+      <div class="metric"><span class="metric-label">45日</span><span class="metric-value" style="color:#e53935">+3.8%</span></div>
+      <div class="metric"><span class="metric-label">支撑</span><span class="metric-value">78.99</span></div>
+      <div class="metric"><span class="metric-label">压力</span><span class="metric-value">80.0</span></div>
+      <div class="metric"><span class="metric-label">回撤</span><span class="metric-value" style="color:#e53935">-1.3%</span></div>
+    </div>
+  </div>
+</div>
+<div class="stock-card" style="animation-delay:0.18s">
+  <div class="card-left">
+    <svg width="52" height="52" viewBox="0 0 52 52">
+  <circle cx="26.0" cy="26.0" r="22.0" fill="none" stroke="#1e2434" stroke-width="4"/>
+  <circle cx="26.0" cy="26.0" r="22.0" fill="none" stroke="#ffb74d" stroke-width="4"
+    stroke-dasharray="84.3 138.2" stroke-linecap="round"
+    transform="rotate(-90 26.0 26.0)"/>
+  <text x="26.0" y="25.0" text-anchor="middle" dominant-baseline="middle" fill="#ffb74d" font-size="18" font-weight="700" font-family="monospace">61</text>
+</svg>
+  </div>
+  <div class="card-main">
+    <div class="card-header">
+      <div class="stock-info">
+        <span class="stock-code">002594</span>
+        <span class="stock-name">比亚迪</span>
+      </div>
+      <span class="signal-badge" style="background:rgba(255,183,77,0.15);color:#ffb74d;border-color:rgba(255,183,77,0.4)">持有</span>
+    </div>
+    <div class="price-row">
+      <span class="price-main">90.00</span>
+      <span class="price-change" style="color:#e53935">+3.60%</span>
+      <span class="tag-chip">均线粘合</span>
+      <span class="tag-chip">量比 0.93</span>
+      <span class="tag-chip">RSI 54.9</span>
+    </div>
+    <div class="card-body">
+      <div class="bars-section"><div class="dim-bar"><span class="dim-label">价格动量</span><div class="dim-track"><div class="dim-fill" style="width:30%;background:#5c6bc0"></div></div><span class="dim-val">9/30</span></div><div class="dim-bar"><span class="dim-label">成交量</span><div class="dim-track"><div class="dim-fill" style="width:75%;background:#26a69a"></div></div><span class="dim-val">15/20</span></div><div class="dim-bar"><span class="dim-label">趋势结构</span><div class="dim-track"><div class="dim-fill" style="width:68%;background:#e53935"></div></div><span class="dim-val">17/25</span></div><div class="dim-bar"><span class="dim-label">相对强度</span><div class="dim-track"><div class="dim-fill" style="width:100%;background:#ab47bc"></div></div><span class="dim-val">15/15</span></div><div class="dim-bar"><span class="dim-label">风险控制</span><div class="dim-track"><div class="dim-fill" style="width:50%;background:#ff7043"></div></div><span class="dim-val">5/10</span></div></div>
+      <div class="chart-section">
+        <div class="radar-wrap"><svg width="88" height="88" viewBox="0 0 88 88" style="display:block">
+  <polygon points="44.0,34.8 52.8,41.1 49.4,51.5 38.6,51.5 35.2,41.1" fill="none" stroke="#2a3548" stroke-width="0.5"/><polygon points="44.0,25.5 61.6,38.3 54.9,59.0 33.1,59.0 26.4,38.3" fill="none" stroke="#2a3548" stroke-width="0.5"/><polygon points="44.0,16.0 70.6,35.3 60.5,66.7 27.5,66.7 17.4,35.3" fill="none" stroke="#2a3548" stroke-width="0.5"/>
+  <line x1="44.0" y1="44.0" x2="44.0" y2="16.0" stroke="#2a3548" stroke-width="0.5"/><line x1="44.0" y1="44.0" x2="70.6" y2="35.3" stroke="#2a3548" stroke-width="0.5"/><line x1="44.0" y1="44.0" x2="60.5" y2="66.7" stroke="#2a3548" stroke-width="0.5"/><line x1="44.0" y1="44.0" x2="27.5" y2="66.7" stroke="#2a3548" stroke-width="0.5"/><line x1="44.0" y1="44.0" x2="17.4" y2="35.3" stroke="#2a3548" stroke-width="0.5"/>
+  <polygon points="44.0,35.6 64.0,37.5 55.2,59.4 27.5,66.7 30.7,39.7" fill="#2962ff33" stroke="#2962ff" stroke-width="1.5"/>
+  <circle cx="44.0" cy="35.6" r="1.5" fill="#2962ff"/><circle cx="64.0" cy="37.5" r="1.5" fill="#2962ff"/><circle cx="55.2" cy="59.4" r="1.5" fill="#2962ff"/><circle cx="27.5" cy="66.7" r="1.5" fill="#2962ff"/><circle cx="30.7" cy="39.7" r="1.5" fill="#2962ff"/>
+  <text x="44.0" y="8.0" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">价格</text><text x="78.2" y="32.9" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">量能</text><text x="65.2" y="73.1" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">趋势</text><text x="22.8" y="73.1" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">强度</text><text x="9.8" y="32.9" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">风险</text>
+</svg></div>
+        <div class="spark-wrap"><svg width="130" height="38" viewBox="0 0 130 38" style="display:block">
+  <polygon points="0,38 0.0,1.2 4.5,6.4 9.0,0.0 13.4,4.0 17.9,6.8 22.4,7.7 26.9,11.4 31.4,10.0 35.9,13.2 40.3,14.3 44.8,10.6 49.3,12.2 53.8,14.6 58.3,19.0 62.8,17.7 67.2,18.8 71.7,24.1 76.2,27.6 80.7,29.8 85.2,38.0 89.7,35.1 94.1,34.9 98.6,33.0 103.1,27.0 107.6,17.0 112.1,18.9 116.6,21.5 121.0,18.3 125.5,20.2 130.0,13.8 130,38" fill="#00c85333"/>
+  <polyline points="0.0,1.2 4.5,6.4 9.0,0.0 13.4,4.0 17.9,6.8 22.4,7.7 26.9,11.4 31.4,10.0 35.9,13.2 40.3,14.3 44.8,10.6 49.3,12.2 53.8,14.6 58.3,19.0 62.8,17.7 67.2,18.8 71.7,24.1 76.2,27.6 80.7,29.8 85.2,38.0 89.7,35.1 94.1,34.9 98.6,33.0 103.1,27.0 107.6,17.0 112.1,18.9 116.6,21.5 121.0,18.3 125.5,20.2 130.0,13.8" fill="none" stroke="#00c853" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="130.0" cy="13.8" r="2.5" fill="#00c853"/>
+</svg></div>
+      </div>
+    </div>
+    <div class="key-metrics">
+      <div class="metric"><span class="metric-label">15日</span><span class="metric-value" style="color:#e53935">+2.1%</span></div>
+      <div class="metric"><span class="metric-label">45日</span><span class="metric-value" style="color:#00c853">-10.4%</span></div>
+      <div class="metric"><span class="metric-label">支撑</span><span class="metric-value">86.26</span></div>
+      <div class="metric"><span class="metric-label">压力</span><span class="metric-value">90.0</span></div>
+      <div class="metric"><span class="metric-label">回撤</span><span class="metric-value" style="color:#e53935">-1.7%</span></div>
+    </div>
+  </div>
+</div>
+<div class="stock-card" style="animation-delay:0.24s">
+  <div class="card-left">
+    <svg width="52" height="52" viewBox="0 0 52 52">
+  <circle cx="26.0" cy="26.0" r="22.0" fill="none" stroke="#1e2434" stroke-width="4"/>
+  <circle cx="26.0" cy="26.0" r="22.0" fill="none" stroke="#ffb74d" stroke-width="4"
+    stroke-dasharray="70.5 138.2" stroke-linecap="round"
+    transform="rotate(-90 26.0 26.0)"/>
+  <text x="26.0" y="25.0" text-anchor="middle" dominant-baseline="middle" fill="#ffb74d" font-size="18" font-weight="700" font-family="monospace">51</text>
+</svg>
+  </div>
+  <div class="card-main">
+    <div class="card-header">
+      <div class="stock-info">
+        <span class="stock-code">600519</span>
+        <span class="stock-name">贵州茅台</span>
+      </div>
+      <span class="signal-badge" style="background:rgba(255,183,77,0.15);color:#ffb74d;border-color:rgba(255,183,77,0.4)">观望</span>
+    </div>
+    <div class="price-row">
+      <span class="price-main">1204.98</span>
+      <span class="price-change" style="color:#e53935">+1.93%</span>
+      <span class="tag-chip">均线粘合</span>
+      <span class="tag-chip">量比 0.8</span>
+      <span class="tag-chip">RSI 46.8</span>
+    </div>
+    <div class="card-body">
+      <div class="bars-section"><div class="dim-bar"><span class="dim-label">价格动量</span><div class="dim-track"><div class="dim-fill" style="width:20%;background:#5c6bc0"></div></div><span class="dim-val">6/30</span></div><div class="dim-bar"><span class="dim-label">成交量</span><div class="dim-track"><div class="dim-fill" style="width:65%;background:#26a69a"></div></div><span class="dim-val">13/20</span></div><div class="dim-bar"><span class="dim-label">趋势结构</span><div class="dim-track"><div class="dim-fill" style="width:68%;background:#e53935"></div></div><span class="dim-val">17/25</span></div><div class="dim-bar"><span class="dim-label">相对强度</span><div class="dim-track"><div class="dim-fill" style="width:67%;background:#ab47bc"></div></div><span class="dim-val">10/15</span></div><div class="dim-bar"><span class="dim-label">风险控制</span><div class="dim-track"><div class="dim-fill" style="width:50%;background:#ff7043"></div></div><span class="dim-val">5/10</span></div></div>
+      <div class="chart-section">
+        <div class="radar-wrap"><svg width="88" height="88" viewBox="0 0 88 88" style="display:block">
+  <polygon points="44.0,34.8 52.8,41.1 49.4,51.5 38.6,51.5 35.2,41.1" fill="none" stroke="#2a3548" stroke-width="0.5"/><polygon points="44.0,25.5 61.6,38.3 54.9,59.0 33.1,59.0 26.4,38.3" fill="none" stroke="#2a3548" stroke-width="0.5"/><polygon points="44.0,16.0 70.6,35.3 60.5,66.7 27.5,66.7 17.4,35.3" fill="none" stroke="#2a3548" stroke-width="0.5"/>
+  <line x1="44.0" y1="44.0" x2="44.0" y2="16.0" stroke="#2a3548" stroke-width="0.5"/><line x1="44.0" y1="44.0" x2="70.6" y2="35.3" stroke="#2a3548" stroke-width="0.5"/><line x1="44.0" y1="44.0" x2="60.5" y2="66.7" stroke="#2a3548" stroke-width="0.5"/><line x1="44.0" y1="44.0" x2="27.5" y2="66.7" stroke="#2a3548" stroke-width="0.5"/><line x1="44.0" y1="44.0" x2="17.4" y2="35.3" stroke="#2a3548" stroke-width="0.5"/>
+  <polygon points="44.0,38.4 61.3,38.4 55.2,59.4 33.0,59.1 30.7,39.7" fill="#2962ff33" stroke="#2962ff" stroke-width="1.5"/>
+  <circle cx="44.0" cy="38.4" r="1.5" fill="#2962ff"/><circle cx="61.3" cy="38.4" r="1.5" fill="#2962ff"/><circle cx="55.2" cy="59.4" r="1.5" fill="#2962ff"/><circle cx="33.0" cy="59.1" r="1.5" fill="#2962ff"/><circle cx="30.7" cy="39.7" r="1.5" fill="#2962ff"/>
+  <text x="44.0" y="8.0" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">价格</text><text x="78.2" y="32.9" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">量能</text><text x="65.2" y="73.1" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">趋势</text><text x="22.8" y="73.1" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">强度</text><text x="9.8" y="32.9" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">风险</text>
+</svg></div>
+        <div class="spark-wrap"><svg width="130" height="38" viewBox="0 0 130 38" style="display:block">
+  <polygon points="0,38 0.0,0.0 4.5,4.8 9.0,5.5 13.4,13.0 17.9,17.0 22.4,15.6 26.9,18.5 31.4,20.6 35.9,14.7 40.3,13.8 44.8,10.0 49.3,16.1 53.8,20.7 58.3,25.3 62.8,32.6 67.2,24.9 71.7,30.4 76.2,34.8 80.7,33.5 85.2,38.0 89.7,30.3 94.1,33.0 98.6,30.8 103.1,27.9 107.6,30.4 112.1,26.8 116.6,32.1 121.0,29.0 125.5,34.0 130.0,27.3 130,38" fill="#00c85333"/>
+  <polyline points="0.0,0.0 4.5,4.8 9.0,5.5 13.4,13.0 17.9,17.0 22.4,15.6 26.9,18.5 31.4,20.6 35.9,14.7 40.3,13.8 44.8,10.0 49.3,16.1 53.8,20.7 58.3,25.3 62.8,32.6 67.2,24.9 71.7,30.4 76.2,34.8 80.7,33.5 85.2,38.0 89.7,30.3 94.1,33.0 98.6,30.8 103.1,27.9 107.6,30.4 112.1,26.8 116.6,32.1 121.0,29.0 125.5,34.0 130.0,27.3" fill="none" stroke="#00c853" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="130.0" cy="27.3" r="2.5" fill="#00c853"/>
+</svg></div>
+      </div>
+    </div>
+    <div class="key-metrics">
+      <div class="metric"><span class="metric-label">15日</span><span class="metric-value" style="color:#e53935">+1.5%</span></div>
+      <div class="metric"><span class="metric-label">45日</span><span class="metric-value" style="color:#00c853">-10.3%</span></div>
+      <div class="metric"><span class="metric-label">支撑</span><span class="metric-value">1182.19</span></div>
+      <div class="metric"><span class="metric-label">压力</span><span class="metric-value">1206.91</span></div>
+      <div class="metric"><span class="metric-label">回撤</span><span class="metric-value" style="color:#e53935">-4.7%</span></div>
+    </div>
+  </div>
+</div>
+<div class="stock-card" style="animation-delay:0.3s">
+  <div class="card-left">
+    <svg width="52" height="52" viewBox="0 0 52 52">
+  <circle cx="26.0" cy="26.0" r="22.0" fill="none" stroke="#1e2434" stroke-width="4"/>
+  <circle cx="26.0" cy="26.0" r="22.0" fill="none" stroke="#ffb74d" stroke-width="4"
+    stroke-dasharray="70.5 138.2" stroke-linecap="round"
+    transform="rotate(-90 26.0 26.0)"/>
+  <text x="26.0" y="25.0" text-anchor="middle" dominant-baseline="middle" fill="#ffb74d" font-size="18" font-weight="700" font-family="monospace">51</text>
+</svg>
+  </div>
+  <div class="card-main">
+    <div class="card-header">
+      <div class="stock-info">
+        <span class="stock-code">300059</span>
+        <span class="stock-name">东方财富</span>
+      </div>
+      <span class="signal-badge" style="background:rgba(255,183,77,0.15);color:#ffb74d;border-color:rgba(255,183,77,0.4)">观望</span>
+    </div>
+    <div class="price-row">
+      <span class="price-main">20.19</span>
+      <span class="price-change" style="color:#00c853">-1.94%</span>
+      <span class="tag-chip">均线粘合</span>
+      <span class="tag-chip">量比 0.62</span>
+      <span class="tag-chip">RSI 51.0</span>
+    </div>
+    <div class="card-body">
+      <div class="bars-section"><div class="dim-bar"><span class="dim-label">价格动量</span><div class="dim-track"><div class="dim-fill" style="width:47%;background:#5c6bc0"></div></div><span class="dim-val">14/30</span></div><div class="dim-bar"><span class="dim-label">成交量</span><div class="dim-track"><div class="dim-fill" style="width:65%;background:#26a69a"></div></div><span class="dim-val">13/20</span></div><div class="dim-bar"><span class="dim-label">趋势结构</span><div class="dim-track"><div class="dim-fill" style="width:20%;background:#e53935"></div></div><span class="dim-val">5/25</span></div><div class="dim-bar"><span class="dim-label">相对强度</span><div class="dim-track"><div class="dim-fill" style="width:100%;background:#ab47bc"></div></div><span class="dim-val">15/15</span></div><div class="dim-bar"><span class="dim-label">风险控制</span><div class="dim-track"><div class="dim-fill" style="width:40%;background:#ff7043"></div></div><span class="dim-val">4/10</span></div></div>
+      <div class="chart-section">
+        <div class="radar-wrap"><svg width="88" height="88" viewBox="0 0 88 88" style="display:block">
+  <polygon points="44.0,34.8 52.8,41.1 49.4,51.5 38.6,51.5 35.2,41.1" fill="none" stroke="#2a3548" stroke-width="0.5"/><polygon points="44.0,25.5 61.6,38.3 54.9,59.0 33.1,59.0 26.4,38.3" fill="none" stroke="#2a3548" stroke-width="0.5"/><polygon points="44.0,16.0 70.6,35.3 60.5,66.7 27.5,66.7 17.4,35.3" fill="none" stroke="#2a3548" stroke-width="0.5"/>
+  <line x1="44.0" y1="44.0" x2="44.0" y2="16.0" stroke="#2a3548" stroke-width="0.5"/><line x1="44.0" y1="44.0" x2="70.6" y2="35.3" stroke="#2a3548" stroke-width="0.5"/><line x1="44.0" y1="44.0" x2="60.5" y2="66.7" stroke="#2a3548" stroke-width="0.5"/><line x1="44.0" y1="44.0" x2="27.5" y2="66.7" stroke="#2a3548" stroke-width="0.5"/><line x1="44.0" y1="44.0" x2="17.4" y2="35.3" stroke="#2a3548" stroke-width="0.5"/>
+  <polygon points="44.0,30.9 61.3,38.4 47.3,48.5 27.5,66.7 33.3,40.5" fill="#2962ff33" stroke="#2962ff" stroke-width="1.5"/>
+  <circle cx="44.0" cy="30.9" r="1.5" fill="#2962ff"/><circle cx="61.3" cy="38.4" r="1.5" fill="#2962ff"/><circle cx="47.3" cy="48.5" r="1.5" fill="#2962ff"/><circle cx="27.5" cy="66.7" r="1.5" fill="#2962ff"/><circle cx="33.3" cy="40.5" r="1.5" fill="#2962ff"/>
+  <text x="44.0" y="8.0" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">价格</text><text x="78.2" y="32.9" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">量能</text><text x="65.2" y="73.1" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">趋势</text><text x="22.8" y="73.1" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">强度</text><text x="9.8" y="32.9" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">风险</text>
+</svg></div>
+        <div class="spark-wrap"><svg width="130" height="38" viewBox="0 0 130 38" style="display:block">
+  <polygon points="0,38 0.0,21.3 4.5,23.0 9.0,23.6 13.4,23.6 17.9,25.2 22.4,27.2 26.9,34.7 31.4,33.2 35.9,34.1 40.3,38.0 44.8,32.1 49.3,23.8 53.8,21.6 58.3,22.4 62.8,26.5 67.2,4.5 71.7,5.1 76.2,11.8 80.7,3.2 85.2,12.8 89.7,12.5 94.1,9.9 98.6,0.0 103.1,6.7 107.6,3.6 112.1,2.5 116.6,10.8 121.0,12.3 125.5,8.0 130.0,11.7 130,38" fill="#e5393533"/>
+  <polyline points="0.0,21.3 4.5,23.0 9.0,23.6 13.4,23.6 17.9,25.2 22.4,27.2 26.9,34.7 31.4,33.2 35.9,34.1 40.3,38.0 44.8,32.1 49.3,23.8 53.8,21.6 58.3,22.4 62.8,26.5 67.2,4.5 71.7,5.1 76.2,11.8 80.7,3.2 85.2,12.8 89.7,12.5 94.1,9.9 98.6,0.0 103.1,6.7 107.6,3.6 112.1,2.5 116.6,10.8 121.0,12.3 125.5,8.0 130.0,11.7" fill="none" stroke="#e53935" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="130.0" cy="11.7" r="2.5" fill="#e53935"/>
+</svg></div>
+      </div>
+    </div>
+    <div class="key-metrics">
+      <div class="metric"><span class="metric-label">15日</span><span class="metric-value" style="color:#e53935">+8.5%</span></div>
+      <div class="metric"><span class="metric-label">45日</span><span class="metric-value" style="color:#00c853">-2.6%</span></div>
+      <div class="metric"><span class="metric-label">支撑</span><span class="metric-value">20.13</span></div>
+      <div class="metric"><span class="metric-label">压力</span><span class="metric-value">21.18</span></div>
+      <div class="metric"><span class="metric-label">回撤</span><span class="metric-value" style="color:#ffb74d">-5.9%</span></div>
+    </div>
+  </div>
+</div>
+<div class="stock-card" style="animation-delay:0.36s">
+  <div class="card-left">
+    <svg width="52" height="52" viewBox="0 0 52 52">
+  <circle cx="26.0" cy="26.0" r="22.0" fill="none" stroke="#1e2434" stroke-width="4"/>
+  <circle cx="26.0" cy="26.0" r="22.0" fill="none" stroke="#00c853" stroke-width="4"
+    stroke-dasharray="62.2 138.2" stroke-linecap="round"
+    transform="rotate(-90 26.0 26.0)"/>
+  <text x="26.0" y="25.0" text-anchor="middle" dominant-baseline="middle" fill="#00c853" font-size="18" font-weight="700" font-family="monospace">45</text>
+</svg>
+  </div>
+  <div class="card-main">
+    <div class="card-header">
+      <div class="stock-info">
+        <span class="stock-code">000001</span>
+        <span class="stock-name">平安银行</span>
+      </div>
+      <span class="signal-badge" style="background:rgba(0,200,83,0.15);color:#00c853;border-color:rgba(0,200,83,0.4)">注意风险</span>
+    </div>
+    <div class="price-row">
+      <span class="price-main">10.45</span>
+      <span class="price-change" style="color:#00c853">-0.38%</span>
+      <span class="tag-chip">均线粘合</span>
+      <span class="tag-chip">量比 0.81</span>
+      <span class="tag-chip">RSI 47.9</span>
+    </div>
+    <div class="card-body">
+      <div class="bars-section"><div class="dim-bar"><span class="dim-label">价格动量</span><div class="dim-track"><div class="dim-fill" style="width:20%;background:#5c6bc0"></div></div><span class="dim-val">6/30</span></div><div class="dim-bar"><span class="dim-label">成交量</span><div class="dim-track"><div class="dim-fill" style="width:55%;background:#26a69a"></div></div><span class="dim-val">11/20</span></div><div class="dim-bar"><span class="dim-label">趋势结构</span><div class="dim-track"><div class="dim-fill" style="width:56%;background:#e53935"></div></div><span class="dim-val">14/25</span></div><div class="dim-bar"><span class="dim-label">相对强度</span><div class="dim-track"><div class="dim-fill" style="width:67%;background:#ab47bc"></div></div><span class="dim-val">10/15</span></div><div class="dim-bar"><span class="dim-label">风险控制</span><div class="dim-track"><div class="dim-fill" style="width:40%;background:#ff7043"></div></div><span class="dim-val">4/10</span></div></div>
+      <div class="chart-section">
+        <div class="radar-wrap"><svg width="88" height="88" viewBox="0 0 88 88" style="display:block">
+  <polygon points="44.0,34.8 52.8,41.1 49.4,51.5 38.6,51.5 35.2,41.1" fill="none" stroke="#2a3548" stroke-width="0.5"/><polygon points="44.0,25.5 61.6,38.3 54.9,59.0 33.1,59.0 26.4,38.3" fill="none" stroke="#2a3548" stroke-width="0.5"/><polygon points="44.0,16.0 70.6,35.3 60.5,66.7 27.5,66.7 17.4,35.3" fill="none" stroke="#2a3548" stroke-width="0.5"/>
+  <line x1="44.0" y1="44.0" x2="44.0" y2="16.0" stroke="#2a3548" stroke-width="0.5"/><line x1="44.0" y1="44.0" x2="70.6" y2="35.3" stroke="#2a3548" stroke-width="0.5"/><line x1="44.0" y1="44.0" x2="60.5" y2="66.7" stroke="#2a3548" stroke-width="0.5"/><line x1="44.0" y1="44.0" x2="27.5" y2="66.7" stroke="#2a3548" stroke-width="0.5"/><line x1="44.0" y1="44.0" x2="17.4" y2="35.3" stroke="#2a3548" stroke-width="0.5"/>
+  <polygon points="44.0,38.4 58.6,39.2 53.2,56.7 33.0,59.1 33.3,40.5" fill="#2962ff33" stroke="#2962ff" stroke-width="1.5"/>
+  <circle cx="44.0" cy="38.4" r="1.5" fill="#2962ff"/><circle cx="58.6" cy="39.2" r="1.5" fill="#2962ff"/><circle cx="53.2" cy="56.7" r="1.5" fill="#2962ff"/><circle cx="33.0" cy="59.1" r="1.5" fill="#2962ff"/><circle cx="33.3" cy="40.5" r="1.5" fill="#2962ff"/>
+  <text x="44.0" y="8.0" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">价格</text><text x="78.2" y="32.9" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">量能</text><text x="65.2" y="73.1" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">趋势</text><text x="22.8" y="73.1" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">强度</text><text x="9.8" y="32.9" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">风险</text>
+</svg></div>
+        <div class="spark-wrap"><svg width="130" height="38" viewBox="0 0 130 38" style="display:block">
+  <polygon points="0,38 0.0,21.4 4.5,19.5 9.0,16.6 13.4,19.5 17.9,24.9 22.4,19.8 26.9,18.2 31.4,15.0 35.9,8.9 40.3,9.6 44.8,0.0 49.3,5.7 53.8,9.6 58.3,14.7 62.8,23.0 67.2,18.8 71.7,16.9 76.2,23.3 80.7,26.2 85.2,32.3 89.7,31.9 94.1,38.0 98.6,34.5 103.1,30.7 107.6,30.3 112.1,23.6 116.6,24.6 121.0,20.4 125.5,23.9 130.0,25.2 130,38" fill="#00c85333"/>
+  <polyline points="0.0,21.4 4.5,19.5 9.0,16.6 13.4,19.5 17.9,24.9 22.4,19.8 26.9,18.2 31.4,15.0 35.9,8.9 40.3,9.6 44.8,0.0 49.3,5.7 53.8,9.6 58.3,14.7 62.8,23.0 67.2,18.8 71.7,16.9 76.2,23.3 80.7,26.2 85.2,32.3 89.7,31.9 94.1,38.0 98.6,34.5 103.1,30.7 107.6,30.3 112.1,23.6 116.6,24.6 121.0,20.4 125.5,23.9 130.0,25.2" fill="none" stroke="#00c853" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="130.0" cy="25.2" r="2.5" fill="#00c853"/>
+</svg></div>
+      </div>
+    </div>
+    <div class="key-metrics">
+      <div class="metric"><span class="metric-label">15日</span><span class="metric-value" style="color:#00c853">-0.7%</span></div>
+      <div class="metric"><span class="metric-label">45日</span><span class="metric-value" style="color:#00c853">-5.1%</span></div>
+      <div class="metric"><span class="metric-label">支撑</span><span class="metric-value">10.45</span></div>
+      <div class="metric"><span class="metric-label">压力</span><span class="metric-value">10.6</span></div>
+      <div class="metric"><span class="metric-label">回撤</span><span class="metric-value" style="color:#ffb74d">-7.0%</span></div>
+    </div>
+  </div>
+</div>
+<div class="stock-card" style="animation-delay:0.42s">
+  <div class="card-left">
+    <svg width="52" height="52" viewBox="0 0 52 52">
+  <circle cx="26.0" cy="26.0" r="22.0" fill="none" stroke="#1e2434" stroke-width="4"/>
+  <circle cx="26.0" cy="26.0" r="22.0" fill="none" stroke="#00c853" stroke-width="4"
+    stroke-dasharray="56.7 138.2" stroke-linecap="round"
+    transform="rotate(-90 26.0 26.0)"/>
+  <text x="26.0" y="25.0" text-anchor="middle" dominant-baseline="middle" fill="#00c853" font-size="18" font-weight="700" font-family="monospace">41</text>
+</svg>
+  </div>
+  <div class="card-main">
+    <div class="card-header">
+      <div class="stock-info">
+        <span class="stock-code">601318</span>
+        <span class="stock-name">中国平安</span>
+      </div>
+      <span class="signal-badge" style="background:rgba(0,200,83,0.15);color:#00c853;border-color:rgba(0,200,83,0.4)">注意风险</span>
+    </div>
+    <div class="price-row">
+      <span class="price-main">49.48</span>
+      <span class="price-change" style="color:#00c853">-0.02%</span>
+      <span class="tag-chip">均线粘合</span>
+      <span class="tag-chip">量比 0.68</span>
+      <span class="tag-chip">RSI 44.9</span>
+    </div>
+    <div class="card-body">
+      <div class="bars-section"><div class="dim-bar"><span class="dim-label">价格动量</span><div class="dim-track"><div class="dim-fill" style="width:20%;background:#5c6bc0"></div></div><span class="dim-val">6/30</span></div><div class="dim-bar"><span class="dim-label">成交量</span><div class="dim-track"><div class="dim-fill" style="width:45%;background:#26a69a"></div></div><span class="dim-val">9/20</span></div><div class="dim-bar"><span class="dim-label">趋势结构</span><div class="dim-track"><div class="dim-fill" style="width:56%;background:#e53935"></div></div><span class="dim-val">14/25</span></div><div class="dim-bar"><span class="dim-label">相对强度</span><div class="dim-track"><div class="dim-fill" style="width:53%;background:#ab47bc"></div></div><span class="dim-val">8/15</span></div><div class="dim-bar"><span class="dim-label">风险控制</span><div class="dim-track"><div class="dim-fill" style="width:40%;background:#ff7043"></div></div><span class="dim-val">4/10</span></div></div>
+      <div class="chart-section">
+        <div class="radar-wrap"><svg width="88" height="88" viewBox="0 0 88 88" style="display:block">
+  <polygon points="44.0,34.8 52.8,41.1 49.4,51.5 38.6,51.5 35.2,41.1" fill="none" stroke="#2a3548" stroke-width="0.5"/><polygon points="44.0,25.5 61.6,38.3 54.9,59.0 33.1,59.0 26.4,38.3" fill="none" stroke="#2a3548" stroke-width="0.5"/><polygon points="44.0,16.0 70.6,35.3 60.5,66.7 27.5,66.7 17.4,35.3" fill="none" stroke="#2a3548" stroke-width="0.5"/>
+  <line x1="44.0" y1="44.0" x2="44.0" y2="16.0" stroke="#2a3548" stroke-width="0.5"/><line x1="44.0" y1="44.0" x2="70.6" y2="35.3" stroke="#2a3548" stroke-width="0.5"/><line x1="44.0" y1="44.0" x2="60.5" y2="66.7" stroke="#2a3548" stroke-width="0.5"/><line x1="44.0" y1="44.0" x2="27.5" y2="66.7" stroke="#2a3548" stroke-width="0.5"/><line x1="44.0" y1="44.0" x2="17.4" y2="35.3" stroke="#2a3548" stroke-width="0.5"/>
+  <polygon points="44.0,38.4 56.0,40.1 53.2,56.7 35.2,56.1 33.3,40.5" fill="#2962ff33" stroke="#2962ff" stroke-width="1.5"/>
+  <circle cx="44.0" cy="38.4" r="1.5" fill="#2962ff"/><circle cx="56.0" cy="40.1" r="1.5" fill="#2962ff"/><circle cx="53.2" cy="56.7" r="1.5" fill="#2962ff"/><circle cx="35.2" cy="56.1" r="1.5" fill="#2962ff"/><circle cx="33.3" cy="40.5" r="1.5" fill="#2962ff"/>
+  <text x="44.0" y="8.0" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">价格</text><text x="78.2" y="32.9" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">量能</text><text x="65.2" y="73.1" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">趋势</text><text x="22.8" y="73.1" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">强度</text><text x="9.8" y="32.9" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">风险</text>
+</svg></div>
+        <div class="spark-wrap"><svg width="130" height="38" viewBox="0 0 130 38" style="display:block">
+  <polygon points="0,38 0.0,13.5 4.5,11.6 9.0,10.3 13.4,12.4 17.9,14.9 22.4,13.6 26.9,14.1 31.4,11.1 35.9,5.5 40.3,8.6 44.8,1.2 49.3,0.0 53.8,6.7 58.3,8.0 62.8,26.3 67.2,12.2 71.7,20.8 76.2,27.7 80.7,26.8 85.2,38.0 89.7,30.6 94.1,35.2 98.6,25.5 103.1,28.8 107.6,27.9 112.1,22.4 116.6,26.8 121.0,25.5 125.5,25.7 130.0,25.8 130,38" fill="#00c85333"/>
+  <polyline points="0.0,13.5 4.5,11.6 9.0,10.3 13.4,12.4 17.9,14.9 22.4,13.6 26.9,14.1 31.4,11.1 35.9,5.5 40.3,8.6 44.8,1.2 49.3,0.0 53.8,6.7 58.3,8.0 62.8,26.3 67.2,12.2 71.7,20.8 76.2,27.7 80.7,26.8 85.2,38.0 89.7,30.6 94.1,35.2 98.6,25.5 103.1,28.8 107.6,27.9 112.1,22.4 116.6,26.8 121.0,25.5 125.5,25.7 130.0,25.8" fill="none" stroke="#00c853" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="130.0" cy="25.8" r="2.5" fill="#00c853"/>
+</svg></div>
+      </div>
+    </div>
+    <div class="key-metrics">
+      <div class="metric"><span class="metric-label">15日</span><span class="metric-value" style="color:#e53935">+0.2%</span></div>
+      <div class="metric"><span class="metric-label">45日</span><span class="metric-value" style="color:#00c853">-15.1%</span></div>
+      <div class="metric"><span class="metric-label">支撑</span><span class="metric-value">49.29</span></div>
+      <div class="metric"><span class="metric-label">压力</span><span class="metric-value">50.1</span></div>
+      <div class="metric"><span class="metric-label">回撤</span><span class="metric-value" style="color:#ffb74d">-8.8%</span></div>
+    </div>
+  </div>
+</div>
+<div class="stock-card" style="animation-delay:0.48s">
+  <div class="card-left">
+    <svg width="52" height="52" viewBox="0 0 52 52">
+  <circle cx="26.0" cy="26.0" r="22.0" fill="none" stroke="#1e2434" stroke-width="4"/>
+  <circle cx="26.0" cy="26.0" r="22.0" fill="none" stroke="#00c853" stroke-width="4"
+    stroke-dasharray="51.1 138.2" stroke-linecap="round"
+    transform="rotate(-90 26.0 26.0)"/>
+  <text x="26.0" y="25.0" text-anchor="middle" dominant-baseline="middle" fill="#00c853" font-size="18" font-weight="700" font-family="monospace">37</text>
+</svg>
+  </div>
+  <div class="card-main">
+    <div class="card-header">
+      <div class="stock-info">
+        <span class="stock-code">000858</span>
+        <span class="stock-name">五粮液</span>
+      </div>
+      <span class="signal-badge" style="background:rgba(0,200,83,0.15);color:#00c853;border-color:rgba(0,200,83,0.4)">注意风险</span>
+    </div>
+    <div class="price-row">
+      <span class="price-main">73.69</span>
+      <span class="price-change" style="color:#e53935">+3.94%</span>
+      <span class="tag-chip">空头排列</span>
+      <span class="tag-chip">量比 1.01</span>
+      <span class="tag-chip">RSI 39.4</span>
+    </div>
+    <div class="card-body">
+      <div class="bars-section"><div class="dim-bar"><span class="dim-label">价格动量</span><div class="dim-track"><div class="dim-fill" style="width:7%;background:#5c6bc0"></div></div><span class="dim-val">2/30</span></div><div class="dim-bar"><span class="dim-label">成交量</span><div class="dim-track"><div class="dim-fill" style="width:75%;background:#26a69a"></div></div><span class="dim-val">15/20</span></div><div class="dim-bar"><span class="dim-label">趋势结构</span><div class="dim-track"><div class="dim-fill" style="width:40%;background:#e53935"></div></div><span class="dim-val">10/25</span></div><div class="dim-bar"><span class="dim-label">相对强度</span><div class="dim-track"><div class="dim-fill" style="width:40%;background:#ab47bc"></div></div><span class="dim-val">6/15</span></div><div class="dim-bar"><span class="dim-label">风险控制</span><div class="dim-track"><div class="dim-fill" style="width:40%;background:#ff7043"></div></div><span class="dim-val">4/10</span></div></div>
+      <div class="chart-section">
+        <div class="radar-wrap"><svg width="88" height="88" viewBox="0 0 88 88" style="display:block">
+  <polygon points="44.0,34.8 52.8,41.1 49.4,51.5 38.6,51.5 35.2,41.1" fill="none" stroke="#2a3548" stroke-width="0.5"/><polygon points="44.0,25.5 61.6,38.3 54.9,59.0 33.1,59.0 26.4,38.3" fill="none" stroke="#2a3548" stroke-width="0.5"/><polygon points="44.0,16.0 70.6,35.3 60.5,66.7 27.5,66.7 17.4,35.3" fill="none" stroke="#2a3548" stroke-width="0.5"/>
+  <line x1="44.0" y1="44.0" x2="44.0" y2="16.0" stroke="#2a3548" stroke-width="0.5"/><line x1="44.0" y1="44.0" x2="70.6" y2="35.3" stroke="#2a3548" stroke-width="0.5"/><line x1="44.0" y1="44.0" x2="60.5" y2="66.7" stroke="#2a3548" stroke-width="0.5"/><line x1="44.0" y1="44.0" x2="27.5" y2="66.7" stroke="#2a3548" stroke-width="0.5"/><line x1="44.0" y1="44.0" x2="17.4" y2="35.3" stroke="#2a3548" stroke-width="0.5"/>
+  <polygon points="44.0,42.1 64.0,37.5 50.6,53.1 37.4,53.1 33.3,40.5" fill="#2962ff33" stroke="#2962ff" stroke-width="1.5"/>
+  <circle cx="44.0" cy="42.1" r="1.5" fill="#2962ff"/><circle cx="64.0" cy="37.5" r="1.5" fill="#2962ff"/><circle cx="50.6" cy="53.1" r="1.5" fill="#2962ff"/><circle cx="37.4" cy="53.1" r="1.5" fill="#2962ff"/><circle cx="33.3" cy="40.5" r="1.5" fill="#2962ff"/>
+  <text x="44.0" y="8.0" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">价格</text><text x="78.2" y="32.9" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">量能</text><text x="65.2" y="73.1" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">趋势</text><text x="22.8" y="73.1" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">强度</text><text x="9.8" y="32.9" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">风险</text>
+</svg></div>
+        <div class="spark-wrap"><svg width="130" height="38" viewBox="0 0 130 38" style="display:block">
+  <polygon points="0,38 0.0,0.0 4.5,4.0 9.0,5.9 13.4,6.9 17.9,10.3 22.4,10.3 26.9,13.4 31.4,15.7 35.9,15.6 40.3,13.9 44.8,13.5 49.3,14.3 53.8,17.8 58.3,20.1 62.8,24.6 67.2,22.7 71.7,27.5 76.2,31.5 80.7,26.9 85.2,31.8 89.7,29.6 94.1,29.6 98.6,28.2 103.1,30.9 107.6,31.7 112.1,30.2 116.6,35.8 121.0,36.4 125.5,38.0 130.0,30.4 130,38" fill="#00c85333"/>
+  <polyline points="0.0,0.0 4.5,4.0 9.0,5.9 13.4,6.9 17.9,10.3 22.4,10.3 26.9,13.4 31.4,15.7 35.9,15.6 40.3,13.9 44.8,13.5 49.3,14.3 53.8,17.8 58.3,20.1 62.8,24.6 67.2,22.7 71.7,27.5 76.2,31.5 80.7,26.9 85.2,31.8 89.7,29.6 94.1,29.6 98.6,28.2 103.1,30.9 107.6,31.7 112.1,30.2 116.6,35.8 121.0,36.4 125.5,38.0 130.0,30.4" fill="none" stroke="#00c853" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="130.0" cy="30.4" r="2.5" fill="#00c853"/>
+</svg></div>
+      </div>
+    </div>
+    <div class="key-metrics">
+      <div class="metric"><span class="metric-label">15日</span><span class="metric-value" style="color:#00c853">-2.8%</span></div>
+      <div class="metric"><span class="metric-label">45日</span><span class="metric-value" style="color:#00c853">-20.4%</span></div>
+      <div class="metric"><span class="metric-label">支撑</span><span class="metric-value">70.9</span></div>
+      <div class="metric"><span class="metric-label">压力</span><span class="metric-value">73.76</span></div>
+      <div class="metric"><span class="metric-label">回撤</span><span class="metric-value" style="color:#ffb74d">-7.8%</span></div>
+    </div>
+  </div>
+</div>
+<div class="stock-card" style="animation-delay:0.54s">
+  <div class="card-left">
+    <svg width="52" height="52" viewBox="0 0 52 52">
+  <circle cx="26.0" cy="26.0" r="22.0" fill="none" stroke="#1e2434" stroke-width="4"/>
+  <circle cx="26.0" cy="26.0" r="22.0" fill="none" stroke="#00c853" stroke-width="4"
+    stroke-dasharray="29.0 138.2" stroke-linecap="round"
+    transform="rotate(-90 26.0 26.0)"/>
+  <text x="26.0" y="25.0" text-anchor="middle" dominant-baseline="middle" fill="#00c853" font-size="18" font-weight="700" font-family="monospace">21</text>
+</svg>
+  </div>
+  <div class="card-main">
+    <div class="card-header">
+      <div class="stock-info">
+        <span class="stock-code">300750</span>
+        <span class="stock-name">宁德时代</span>
+      </div>
+      <span class="signal-badge" style="background:rgba(0,200,83,0.15);color:#00c853;border-color:rgba(0,200,83,0.4)">回避</span>
+    </div>
+    <div class="price-row">
+      <span class="price-main">348.76</span>
+      <span class="price-change" style="color:#00c853">-7.12%</span>
+      <span class="tag-chip">空头排列</span>
+      <span class="tag-chip">量比 0.9</span>
+      <span class="tag-chip">RSI 33.9</span>
+    </div>
+    <div class="card-body">
+      <div class="bars-section"><div class="dim-bar"><span class="dim-label">价格动量</span><div class="dim-track"><div class="dim-fill" style="width:7%;background:#5c6bc0"></div></div><span class="dim-val">2/30</span></div><div class="dim-bar"><span class="dim-label">成交量</span><div class="dim-track"><div class="dim-fill" style="width:55%;background:#26a69a"></div></div><span class="dim-val">11/20</span></div><div class="dim-bar"><span class="dim-label">趋势结构</span><div class="dim-track"><div class="dim-fill" style="width:0%;background:#e53935"></div></div><span class="dim-val">0/25</span></div><div class="dim-bar"><span class="dim-label">相对强度</span><div class="dim-track"><div class="dim-fill" style="width:40%;background:#ab47bc"></div></div><span class="dim-val">6/15</span></div><div class="dim-bar"><span class="dim-label">风险控制</span><div class="dim-track"><div class="dim-fill" style="width:20%;background:#ff7043"></div></div><span class="dim-val">2/10</span></div></div>
+      <div class="chart-section">
+        <div class="radar-wrap"><svg width="88" height="88" viewBox="0 0 88 88" style="display:block">
+  <polygon points="44.0,34.8 52.8,41.1 49.4,51.5 38.6,51.5 35.2,41.1" fill="none" stroke="#2a3548" stroke-width="0.5"/><polygon points="44.0,25.5 61.6,38.3 54.9,59.0 33.1,59.0 26.4,38.3" fill="none" stroke="#2a3548" stroke-width="0.5"/><polygon points="44.0,16.0 70.6,35.3 60.5,66.7 27.5,66.7 17.4,35.3" fill="none" stroke="#2a3548" stroke-width="0.5"/>
+  <line x1="44.0" y1="44.0" x2="44.0" y2="16.0" stroke="#2a3548" stroke-width="0.5"/><line x1="44.0" y1="44.0" x2="70.6" y2="35.3" stroke="#2a3548" stroke-width="0.5"/><line x1="44.0" y1="44.0" x2="60.5" y2="66.7" stroke="#2a3548" stroke-width="0.5"/><line x1="44.0" y1="44.0" x2="27.5" y2="66.7" stroke="#2a3548" stroke-width="0.5"/><line x1="44.0" y1="44.0" x2="17.4" y2="35.3" stroke="#2a3548" stroke-width="0.5"/>
+  <polygon points="44.0,42.1 58.6,39.2 44.0,44.0 37.4,53.1 38.7,42.3" fill="#2962ff33" stroke="#2962ff" stroke-width="1.5"/>
+  <circle cx="44.0" cy="42.1" r="1.5" fill="#2962ff"/><circle cx="58.6" cy="39.2" r="1.5" fill="#2962ff"/><circle cx="44.0" cy="44.0" r="1.5" fill="#2962ff"/><circle cx="37.4" cy="53.1" r="1.5" fill="#2962ff"/><circle cx="38.7" cy="42.3" r="1.5" fill="#2962ff"/>
+  <text x="44.0" y="8.0" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">价格</text><text x="78.2" y="32.9" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">量能</text><text x="65.2" y="73.1" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">趋势</text><text x="22.8" y="73.1" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">强度</text><text x="9.8" y="32.9" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">风险</text>
+</svg></div>
+        <div class="spark-wrap"><svg width="130" height="38" viewBox="0 0 130 38" style="display:block">
+  <polygon points="0,38 0.0,4.4 4.5,6.2 9.0,0.0 13.4,3.3 17.9,11.5 22.4,13.8 26.9,18.2 31.4,15.4 35.9,20.3 40.3,23.1 44.8,17.4 49.3,16.0 53.8,13.6 58.3,15.6 62.8,18.9 67.2,11.1 71.7,18.5 76.2,17.2 80.7,14.3 85.2,23.6 89.7,18.5 94.1,18.2 98.6,22.3 103.1,23.0 107.6,24.1 112.1,26.5 116.6,27.4 121.0,32.5 125.5,26.1 130.0,38.0 130,38" fill="#00c85333"/>
+  <polyline points="0.0,4.4 4.5,6.2 9.0,0.0 13.4,3.3 17.9,11.5 22.4,13.8 26.9,18.2 31.4,15.4 35.9,20.3 40.3,23.1 44.8,17.4 49.3,16.0 53.8,13.6 58.3,15.6 62.8,18.9 67.2,11.1 71.7,18.5 76.2,17.2 80.7,14.3 85.2,23.6 89.7,18.5 94.1,18.2 98.6,22.3 103.1,23.0 107.6,24.1 112.1,26.5 116.6,27.4 121.0,32.5 125.5,26.1 130.0,38.0" fill="none" stroke="#00c853" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="130.0" cy="38.0" r="2.5" fill="#00c853"/>
+</svg></div>
+      </div>
+    </div>
+    <div class="key-metrics">
+      <div class="metric"><span class="metric-label">15日</span><span class="metric-value" style="color:#00c853">-10.9%</span></div>
+      <div class="metric"><span class="metric-label">45日</span><span class="metric-value" style="color:#00c853">-22.8%</span></div>
+      <div class="metric"><span class="metric-label">支撑</span><span class="metric-value">348.76</span></div>
+      <div class="metric"><span class="metric-label">压力</span><span class="metric-value">375.5</span></div>
+      <div class="metric"><span class="metric-label">回撤</span><span class="metric-value" style="color:#00c853">-14.7%</span></div>
+    </div>
+  </div>
+</div>
+  </div>
+</div>
+
+<!-- ETF Section -->
+<div class="section">
+  <div class="section-header">
+    <h2>ETF</h2>
+    <div class="section-line"></div>
+    <div class="section-stats">
+      <span class="section-stat buy">买入 0</span>
+      <span class="section-stat hold">持有 4</span>
+      <span class="section-stat sell">回避 6</span>
+    </div>
+  </div>
+  <div class="cards-grid">
+    
+<div class="stock-card" style="animation-delay:0.0s">
+  <div class="card-left">
+    <svg width="52" height="52" viewBox="0 0 52 52">
+  <circle cx="26.0" cy="26.0" r="22.0" fill="none" stroke="#1e2434" stroke-width="4"/>
+  <circle cx="26.0" cy="26.0" r="22.0" fill="none" stroke="#ffb74d" stroke-width="4"
+    stroke-dasharray="88.5 138.2" stroke-linecap="round"
+    transform="rotate(-90 26.0 26.0)"/>
+  <text x="26.0" y="25.0" text-anchor="middle" dominant-baseline="middle" fill="#ffb74d" font-size="18" font-weight="700" font-family="monospace">64</text>
+</svg>
+  </div>
+  <div class="card-main">
+    <div class="card-header">
+      <div class="stock-info">
+        <span class="stock-code">159865</span>
+        <span class="stock-name">养殖ETF</span>
+      </div>
+      <span class="signal-badge" style="background:rgba(255,183,77,0.15);color:#ffb74d;border-color:rgba(255,183,77,0.4)">持有</span>
+    </div>
+    <div class="price-row">
+      <span class="price-main">0.52</span>
+      <span class="price-change" style="color:#e53935">+2.14%</span>
+      <span class="tag-chip">多头排列</span>
+      <span class="tag-chip">量比 1.28</span>
+      <span class="tag-chip">RSI 52.0</span>
+    </div>
+    <div class="card-body">
+      <div class="bars-section"><div class="dim-bar"><span class="dim-label">价格动量</span><div class="dim-track"><div class="dim-fill" style="width:33%;background:#5c6bc0"></div></div><span class="dim-val">10/30</span></div><div class="dim-bar"><span class="dim-label">成交量</span><div class="dim-track"><div class="dim-fill" style="width:85%;background:#26a69a"></div></div><span class="dim-val">17/20</span></div><div class="dim-bar"><span class="dim-label">趋势结构</span><div class="dim-track"><div class="dim-fill" style="width:68%;background:#e53935"></div></div><span class="dim-val">17/25</span></div><div class="dim-bar"><span class="dim-label">相对强度</span><div class="dim-track"><div class="dim-fill" style="width:100%;background:#ab47bc"></div></div><span class="dim-val">15/15</span></div><div class="dim-bar"><span class="dim-label">风险控制</span><div class="dim-track"><div class="dim-fill" style="width:50%;background:#ff7043"></div></div><span class="dim-val">5/10</span></div></div>
+      <div class="chart-section">
+        <div class="radar-wrap"><svg width="88" height="88" viewBox="0 0 88 88" style="display:block">
+  <polygon points="44.0,34.8 52.8,41.1 49.4,51.5 38.6,51.5 35.2,41.1" fill="none" stroke="#2a3548" stroke-width="0.5"/><polygon points="44.0,25.5 61.6,38.3 54.9,59.0 33.1,59.0 26.4,38.3" fill="none" stroke="#2a3548" stroke-width="0.5"/><polygon points="44.0,16.0 70.6,35.3 60.5,66.7 27.5,66.7 17.4,35.3" fill="none" stroke="#2a3548" stroke-width="0.5"/>
+  <line x1="44.0" y1="44.0" x2="44.0" y2="16.0" stroke="#2a3548" stroke-width="0.5"/><line x1="44.0" y1="44.0" x2="70.6" y2="35.3" stroke="#2a3548" stroke-width="0.5"/><line x1="44.0" y1="44.0" x2="60.5" y2="66.7" stroke="#2a3548" stroke-width="0.5"/><line x1="44.0" y1="44.0" x2="27.5" y2="66.7" stroke="#2a3548" stroke-width="0.5"/><line x1="44.0" y1="44.0" x2="17.4" y2="35.3" stroke="#2a3548" stroke-width="0.5"/>
+  <polygon points="44.0,34.7 66.6,36.6 55.2,59.4 27.5,66.7 30.7,39.7" fill="#2962ff33" stroke="#2962ff" stroke-width="1.5"/>
+  <circle cx="44.0" cy="34.7" r="1.5" fill="#2962ff"/><circle cx="66.6" cy="36.6" r="1.5" fill="#2962ff"/><circle cx="55.2" cy="59.4" r="1.5" fill="#2962ff"/><circle cx="27.5" cy="66.7" r="1.5" fill="#2962ff"/><circle cx="30.7" cy="39.7" r="1.5" fill="#2962ff"/>
+  <text x="44.0" y="8.0" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">价格</text><text x="78.2" y="32.9" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">量能</text><text x="65.2" y="73.1" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">趋势</text><text x="22.8" y="73.1" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">强度</text><text x="9.8" y="32.9" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">风险</text>
+</svg></div>
+        <div class="spark-wrap"><svg width="130" height="38" viewBox="0 0 130 38" style="display:block">
+  <polygon points="0,38 0.0,4.1 4.5,0.0 9.0,5.1 13.4,8.7 17.9,15.4 22.4,17.5 26.9,19.5 31.4,20.0 35.9,19.0 40.3,21.6 44.8,17.5 49.3,18.0 53.8,21.1 58.3,25.7 62.8,30.3 67.2,28.8 71.7,29.8 76.2,35.4 80.7,38.0 85.2,37.0 89.7,28.8 94.1,32.9 98.6,18.0 103.1,16.9 107.6,18.5 112.1,8.2 116.6,11.3 121.0,19.0 125.5,20.0 130.0,14.4 130,38" fill="#00c85333"/>
+  <polyline points="0.0,4.1 4.5,0.0 9.0,5.1 13.4,8.7 17.9,15.4 22.4,17.5 26.9,19.5 31.4,20.0 35.9,19.0 40.3,21.6 44.8,17.5 49.3,18.0 53.8,21.1 58.3,25.7 62.8,30.3 67.2,28.8 71.7,29.8 76.2,35.4 80.7,38.0 85.2,37.0 89.7,28.8 94.1,32.9 98.6,18.0 103.1,16.9 107.6,18.5 112.1,8.2 116.6,11.3 121.0,19.0 125.5,20.0 130.0,14.4" fill="none" stroke="#00c853" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="130.0" cy="14.4" r="2.5" fill="#00c853"/>
+</svg></div>
+      </div>
+    </div>
+    <div class="key-metrics">
+      <div class="metric"><span class="metric-label">15日</span><span class="metric-value" style="color:#e53935">+6.3%</span></div>
+      <div class="metric"><span class="metric-label">45日</span><span class="metric-value" style="color:#00c853">-14.4%</span></div>
+      <div class="metric"><span class="metric-label">支撑</span><span class="metric-value">0.51</span></div>
+      <div class="metric"><span class="metric-label">压力</span><span class="metric-value">0.54</span></div>
+      <div class="metric"><span class="metric-label">回撤</span><span class="metric-value" style="color:#e53935">-2.2%</span></div>
+    </div>
+  </div>
+</div>
+<div class="stock-card" style="animation-delay:0.06s">
+  <div class="card-left">
+    <svg width="52" height="52" viewBox="0 0 52 52">
+  <circle cx="26.0" cy="26.0" r="22.0" fill="none" stroke="#1e2434" stroke-width="4"/>
+  <circle cx="26.0" cy="26.0" r="22.0" fill="none" stroke="#ffb74d" stroke-width="4"
+    stroke-dasharray="85.7 138.2" stroke-linecap="round"
+    transform="rotate(-90 26.0 26.0)"/>
+  <text x="26.0" y="25.0" text-anchor="middle" dominant-baseline="middle" fill="#ffb74d" font-size="18" font-weight="700" font-family="monospace">62</text>
+</svg>
+  </div>
+  <div class="card-main">
+    <div class="card-header">
+      <div class="stock-info">
+        <span class="stock-code">588000</span>
+        <span class="stock-name">科创50ETF</span>
+      </div>
+      <span class="signal-badge" style="background:rgba(255,183,77,0.15);color:#ffb74d;border-color:rgba(255,183,77,0.4)">持有</span>
+    </div>
+    <div class="price-row">
+      <span class="price-main">2.21</span>
+      <span class="price-change" style="color:#00c853">-5.11%</span>
+      <span class="tag-chip">均线粘合</span>
+      <span class="tag-chip">量比 1.06</span>
+      <span class="tag-chip">RSI 58.9</span>
+    </div>
+    <div class="card-body">
+      <div class="bars-section"><div class="dim-bar"><span class="dim-label">价格动量</span><div class="dim-track"><div class="dim-fill" style="width:100%;background:#5c6bc0"></div></div><span class="dim-val">30/30</span></div><div class="dim-bar"><span class="dim-label">成交量</span><div class="dim-track"><div class="dim-fill" style="width:40%;background:#26a69a"></div></div><span class="dim-val">8/20</span></div><div class="dim-bar"><span class="dim-label">趋势结构</span><div class="dim-track"><div class="dim-fill" style="width:20%;background:#e53935"></div></div><span class="dim-val">5/25</span></div><div class="dim-bar"><span class="dim-label">相对强度</span><div class="dim-track"><div class="dim-fill" style="width:100%;background:#ab47bc"></div></div><span class="dim-val">15/15</span></div><div class="dim-bar"><span class="dim-label">风险控制</span><div class="dim-track"><div class="dim-fill" style="width:40%;background:#ff7043"></div></div><span class="dim-val">4/10</span></div></div>
+      <div class="chart-section">
+        <div class="radar-wrap"><svg width="88" height="88" viewBox="0 0 88 88" style="display:block">
+  <polygon points="44.0,34.8 52.8,41.1 49.4,51.5 38.6,51.5 35.2,41.1" fill="none" stroke="#2a3548" stroke-width="0.5"/><polygon points="44.0,25.5 61.6,38.3 54.9,59.0 33.1,59.0 26.4,38.3" fill="none" stroke="#2a3548" stroke-width="0.5"/><polygon points="44.0,16.0 70.6,35.3 60.5,66.7 27.5,66.7 17.4,35.3" fill="none" stroke="#2a3548" stroke-width="0.5"/>
+  <line x1="44.0" y1="44.0" x2="44.0" y2="16.0" stroke="#2a3548" stroke-width="0.5"/><line x1="44.0" y1="44.0" x2="70.6" y2="35.3" stroke="#2a3548" stroke-width="0.5"/><line x1="44.0" y1="44.0" x2="60.5" y2="66.7" stroke="#2a3548" stroke-width="0.5"/><line x1="44.0" y1="44.0" x2="27.5" y2="66.7" stroke="#2a3548" stroke-width="0.5"/><line x1="44.0" y1="44.0" x2="17.4" y2="35.3" stroke="#2a3548" stroke-width="0.5"/>
+  <polygon points="44.0,16.0 54.7,40.5 47.3,48.5 27.5,66.7 33.3,40.5" fill="#2962ff33" stroke="#2962ff" stroke-width="1.5"/>
+  <circle cx="44.0" cy="16.0" r="1.5" fill="#2962ff"/><circle cx="54.7" cy="40.5" r="1.5" fill="#2962ff"/><circle cx="47.3" cy="48.5" r="1.5" fill="#2962ff"/><circle cx="27.5" cy="66.7" r="1.5" fill="#2962ff"/><circle cx="33.3" cy="40.5" r="1.5" fill="#2962ff"/>
+  <text x="44.0" y="8.0" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">价格</text><text x="78.2" y="32.9" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">量能</text><text x="65.2" y="73.1" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">趋势</text><text x="22.8" y="73.1" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">强度</text><text x="9.8" y="32.9" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">风险</text>
+</svg></div>
+        <div class="spark-wrap"><svg width="130" height="38" viewBox="0 0 130 38" style="display:block">
+  <polygon points="0,38 0.0,28.7 4.5,33.9 9.0,32.4 13.4,30.0 17.9,29.4 22.4,33.4 26.9,38.0 31.4,33.9 35.9,34.5 40.3,33.8 44.8,33.8 49.3,28.7 53.8,28.1 58.3,23.3 62.8,18.8 67.2,16.6 71.7,18.5 76.2,14.3 80.7,9.5 85.2,12.1 89.7,5.5 94.1,0.0 98.6,3.1 103.1,12.9 107.6,13.9 112.1,13.1 116.6,12.5 121.0,11.4 125.5,0.9 130.0,7.8 130,38" fill="#e5393533"/>
+  <polyline points="0.0,28.7 4.5,33.9 9.0,32.4 13.4,30.0 17.9,29.4 22.4,33.4 26.9,38.0 31.4,33.9 35.9,34.5 40.3,33.8 44.8,33.8 49.3,28.7 53.8,28.1 58.3,23.3 62.8,18.8 67.2,16.6 71.7,18.5 76.2,14.3 80.7,9.5 85.2,12.1 89.7,5.5 94.1,0.0 98.6,3.1 103.1,12.9 107.6,13.9 112.1,13.1 116.6,12.5 121.0,11.4 125.5,0.9 130.0,7.8" fill="none" stroke="#e53935" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="130.0" cy="7.8" r="2.5" fill="#e53935"/>
+</svg></div>
+      </div>
+    </div>
+    <div class="key-metrics">
+      <div class="metric"><span class="metric-label">15日</span><span class="metric-value" style="color:#e53935">+9.5%</span></div>
+      <div class="metric"><span class="metric-label">45日</span><span class="metric-value" style="color:#e53935">+24.9%</span></div>
+      <div class="metric"><span class="metric-label">支撑</span><span class="metric-value">2.12</span></div>
+      <div class="metric"><span class="metric-label">压力</span><span class="metric-value">2.33</span></div>
+      <div class="metric"><span class="metric-label">回撤</span><span class="metric-value" style="color:#ffb74d">-5.8%</span></div>
+    </div>
+  </div>
+</div>
+<div class="stock-card" style="animation-delay:0.12s">
+  <div class="card-left">
+    <svg width="52" height="52" viewBox="0 0 52 52">
+  <circle cx="26.0" cy="26.0" r="22.0" fill="none" stroke="#1e2434" stroke-width="4"/>
+  <circle cx="26.0" cy="26.0" r="22.0" fill="none" stroke="#ffb74d" stroke-width="4"
+    stroke-dasharray="74.6 138.2" stroke-linecap="round"
+    transform="rotate(-90 26.0 26.0)"/>
+  <text x="26.0" y="25.0" text-anchor="middle" dominant-baseline="middle" fill="#ffb74d" font-size="18" font-weight="700" font-family="monospace">54</text>
+</svg>
+  </div>
+  <div class="card-main">
+    <div class="card-header">
+      <div class="stock-info">
+        <span class="stock-code">510050</span>
+        <span class="stock-name">上证50ETF</span>
+      </div>
+      <span class="signal-badge" style="background:rgba(255,183,77,0.15);color:#ffb74d;border-color:rgba(255,183,77,0.4)">观望</span>
+    </div>
+    <div class="price-row">
+      <span class="price-main">3.06</span>
+      <span class="price-change" style="color:#00c853">-1.04%</span>
+      <span class="tag-chip">均线粘合</span>
+      <span class="tag-chip">量比 0.66</span>
+      <span class="tag-chip">RSI 53.3</span>
+    </div>
+    <div class="card-body">
+      <div class="bars-section"><div class="dim-bar"><span class="dim-label">价格动量</span><div class="dim-track"><div class="dim-fill" style="width:33%;background:#5c6bc0"></div></div><span class="dim-val">10/30</span></div><div class="dim-bar"><span class="dim-label">成交量</span><div class="dim-track"><div class="dim-fill" style="width:45%;background:#26a69a"></div></div><span class="dim-val">9/20</span></div><div class="dim-bar"><span class="dim-label">趋势结构</span><div class="dim-track"><div class="dim-fill" style="width:60%;background:#e53935"></div></div><span class="dim-val">15/25</span></div><div class="dim-bar"><span class="dim-label">相对强度</span><div class="dim-track"><div class="dim-fill" style="width:100%;background:#ab47bc"></div></div><span class="dim-val">15/15</span></div><div class="dim-bar"><span class="dim-label">风险控制</span><div class="dim-track"><div class="dim-fill" style="width:50%;background:#ff7043"></div></div><span class="dim-val">5/10</span></div></div>
+      <div class="chart-section">
+        <div class="radar-wrap"><svg width="88" height="88" viewBox="0 0 88 88" style="display:block">
+  <polygon points="44.0,34.8 52.8,41.1 49.4,51.5 38.6,51.5 35.2,41.1" fill="none" stroke="#2a3548" stroke-width="0.5"/><polygon points="44.0,25.5 61.6,38.3 54.9,59.0 33.1,59.0 26.4,38.3" fill="none" stroke="#2a3548" stroke-width="0.5"/><polygon points="44.0,16.0 70.6,35.3 60.5,66.7 27.5,66.7 17.4,35.3" fill="none" stroke="#2a3548" stroke-width="0.5"/>
+  <line x1="44.0" y1="44.0" x2="44.0" y2="16.0" stroke="#2a3548" stroke-width="0.5"/><line x1="44.0" y1="44.0" x2="70.6" y2="35.3" stroke="#2a3548" stroke-width="0.5"/><line x1="44.0" y1="44.0" x2="60.5" y2="66.7" stroke="#2a3548" stroke-width="0.5"/><line x1="44.0" y1="44.0" x2="27.5" y2="66.7" stroke="#2a3548" stroke-width="0.5"/><line x1="44.0" y1="44.0" x2="17.4" y2="35.3" stroke="#2a3548" stroke-width="0.5"/>
+  <polygon points="44.0,34.7 56.0,40.1 53.9,57.6 27.5,66.7 30.7,39.7" fill="#2962ff33" stroke="#2962ff" stroke-width="1.5"/>
+  <circle cx="44.0" cy="34.7" r="1.5" fill="#2962ff"/><circle cx="56.0" cy="40.1" r="1.5" fill="#2962ff"/><circle cx="53.9" cy="57.6" r="1.5" fill="#2962ff"/><circle cx="27.5" cy="66.7" r="1.5" fill="#2962ff"/><circle cx="30.7" cy="39.7" r="1.5" fill="#2962ff"/>
+  <text x="44.0" y="8.0" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">价格</text><text x="78.2" y="32.9" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">量能</text><text x="65.2" y="73.1" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">趋势</text><text x="22.8" y="73.1" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">强度</text><text x="9.8" y="32.9" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">风险</text>
+</svg></div>
+        <div class="spark-wrap"><svg width="130" height="38" viewBox="0 0 130 38" style="display:block">
+  <polygon points="0,38 0.0,19.4 4.5,25.0 9.0,20.2 13.4,19.6 17.9,25.8 22.4,30.4 26.9,38.0 31.4,34.9 35.9,32.2 40.3,32.8 44.8,22.3 49.3,14.2 53.8,20.2 58.3,15.9 62.8,15.5 67.2,0.0 71.7,17.8 76.2,14.2 80.7,7.4 85.2,18.8 89.7,2.7 94.1,2.7 98.6,4.5 103.1,18.2 107.6,14.3 112.1,9.9 116.6,16.5 121.0,17.1 125.5,1.6 130.0,7.8 130,38" fill="#e5393533"/>
+  <polyline points="0.0,19.4 4.5,25.0 9.0,20.2 13.4,19.6 17.9,25.8 22.4,30.4 26.9,38.0 31.4,34.9 35.9,32.2 40.3,32.8 44.8,22.3 49.3,14.2 53.8,20.2 58.3,15.9 62.8,15.5 67.2,0.0 71.7,17.8 76.2,14.2 80.7,7.4 85.2,18.8 89.7,2.7 94.1,2.7 98.6,4.5 103.1,18.2 107.6,14.3 112.1,9.9 116.6,16.5 121.0,17.1 125.5,1.6 130.0,7.8" fill="none" stroke="#e53935" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="130.0" cy="7.8" r="2.5" fill="#e53935"/>
+</svg></div>
+      </div>
+    </div>
+    <div class="key-metrics">
+      <div class="metric"><span class="metric-label">15日</span><span class="metric-value" style="color:#e53935">+1.3%</span></div>
+      <div class="metric"><span class="metric-label">45日</span><span class="metric-value" style="color:#00c853">-1.5%</span></div>
+      <div class="metric"><span class="metric-label">支撑</span><span class="metric-value">3.01</span></div>
+      <div class="metric"><span class="metric-label">压力</span><span class="metric-value">3.09</span></div>
+      <div class="metric"><span class="metric-label">回撤</span><span class="metric-value" style="color:#e53935">-1.3%</span></div>
+    </div>
+  </div>
+</div>
+<div class="stock-card" style="animation-delay:0.18s">
+  <div class="card-left">
+    <svg width="52" height="52" viewBox="0 0 52 52">
+  <circle cx="26.0" cy="26.0" r="22.0" fill="none" stroke="#1e2434" stroke-width="4"/>
+  <circle cx="26.0" cy="26.0" r="22.0" fill="none" stroke="#ffb74d" stroke-width="4"
+    stroke-dasharray="73.3 138.2" stroke-linecap="round"
+    transform="rotate(-90 26.0 26.0)"/>
+  <text x="26.0" y="25.0" text-anchor="middle" dominant-baseline="middle" fill="#ffb74d" font-size="18" font-weight="700" font-family="monospace">53</text>
+</svg>
+  </div>
+  <div class="card-main">
+    <div class="card-header">
+      <div class="stock-info">
+        <span class="stock-code">512660</span>
+        <span class="stock-name">军工ETF</span>
+      </div>
+      <span class="signal-badge" style="background:rgba(255,183,77,0.15);color:#ffb74d;border-color:rgba(255,183,77,0.4)">观望</span>
+    </div>
+    <div class="price-row">
+      <span class="price-main">1.28</span>
+      <span class="price-change" style="color:#e53935">+3.06%</span>
+      <span class="tag-chip">空头排列</span>
+      <span class="tag-chip">量比 1.2</span>
+      <span class="tag-chip">RSI 51.0</span>
+    </div>
+    <div class="card-body">
+      <div class="bars-section"><div class="dim-bar"><span class="dim-label">价格动量</span><div class="dim-track"><div class="dim-fill" style="width:20%;background:#5c6bc0"></div></div><span class="dim-val">6/30</span></div><div class="dim-bar"><span class="dim-label">成交量</span><div class="dim-track"><div class="dim-fill" style="width:85%;background:#26a69a"></div></div><span class="dim-val">17/20</span></div><div class="dim-bar"><span class="dim-label">趋势结构</span><div class="dim-track"><div class="dim-fill" style="width:52%;background:#e53935"></div></div><span class="dim-val">13/25</span></div><div class="dim-bar"><span class="dim-label">相对强度</span><div class="dim-track"><div class="dim-fill" style="width:80%;background:#ab47bc"></div></div><span class="dim-val">12/15</span></div><div class="dim-bar"><span class="dim-label">风险控制</span><div class="dim-track"><div class="dim-fill" style="width:50%;background:#ff7043"></div></div><span class="dim-val">5/10</span></div></div>
+      <div class="chart-section">
+        <div class="radar-wrap"><svg width="88" height="88" viewBox="0 0 88 88" style="display:block">
+  <polygon points="44.0,34.8 52.8,41.1 49.4,51.5 38.6,51.5 35.2,41.1" fill="none" stroke="#2a3548" stroke-width="0.5"/><polygon points="44.0,25.5 61.6,38.3 54.9,59.0 33.1,59.0 26.4,38.3" fill="none" stroke="#2a3548" stroke-width="0.5"/><polygon points="44.0,16.0 70.6,35.3 60.5,66.7 27.5,66.7 17.4,35.3" fill="none" stroke="#2a3548" stroke-width="0.5"/>
+  <line x1="44.0" y1="44.0" x2="44.0" y2="16.0" stroke="#2a3548" stroke-width="0.5"/><line x1="44.0" y1="44.0" x2="70.6" y2="35.3" stroke="#2a3548" stroke-width="0.5"/><line x1="44.0" y1="44.0" x2="60.5" y2="66.7" stroke="#2a3548" stroke-width="0.5"/><line x1="44.0" y1="44.0" x2="27.5" y2="66.7" stroke="#2a3548" stroke-width="0.5"/><line x1="44.0" y1="44.0" x2="17.4" y2="35.3" stroke="#2a3548" stroke-width="0.5"/>
+  <polygon points="44.0,38.4 66.6,36.6 52.6,55.8 30.8,62.1 30.7,39.7" fill="#2962ff33" stroke="#2962ff" stroke-width="1.5"/>
+  <circle cx="44.0" cy="38.4" r="1.5" fill="#2962ff"/><circle cx="66.6" cy="36.6" r="1.5" fill="#2962ff"/><circle cx="52.6" cy="55.8" r="1.5" fill="#2962ff"/><circle cx="30.8" cy="62.1" r="1.5" fill="#2962ff"/><circle cx="30.7" cy="39.7" r="1.5" fill="#2962ff"/>
+  <text x="44.0" y="8.0" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">价格</text><text x="78.2" y="32.9" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">量能</text><text x="65.2" y="73.1" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">趋势</text><text x="22.8" y="73.1" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">强度</text><text x="9.8" y="32.9" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">风险</text>
+</svg></div>
+        <div class="spark-wrap"><svg width="130" height="38" viewBox="0 0 130 38" style="display:block">
+  <polygon points="0,38 0.0,7.9 4.5,14.8 9.0,15.8 13.4,13.0 17.9,10.7 22.4,12.5 26.9,37.5 31.4,30.6 35.9,36.6 40.3,38.0 44.8,25.5 49.3,16.2 53.8,15.8 58.3,5.6 62.8,5.1 67.2,1.4 71.7,22.7 76.2,18.1 80.7,19.0 85.2,27.8 89.7,31.0 94.1,9.7 98.6,4.6 103.1,20.9 107.6,0.0 112.1,7.9 116.6,26.4 121.0,38.0 125.5,26.9 130.0,9.3 130,38" fill="#00c85333"/>
+  <polyline points="0.0,7.9 4.5,14.8 9.0,15.8 13.4,13.0 17.9,10.7 22.4,12.5 26.9,37.5 31.4,30.6 35.9,36.6 40.3,38.0 44.8,25.5 49.3,16.2 53.8,15.8 58.3,5.6 62.8,5.1 67.2,1.4 71.7,22.7 76.2,18.1 80.7,19.0 85.2,27.8 89.7,31.0 94.1,9.7 98.6,4.6 103.1,20.9 107.6,0.0 112.1,7.9 116.6,26.4 121.0,38.0 125.5,26.9 130.0,9.3" fill="none" stroke="#00c853" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="130.0" cy="9.3" r="2.5" fill="#00c853"/>
+</svg></div>
+      </div>
+    </div>
+    <div class="key-metrics">
+      <div class="metric"><span class="metric-label">15日</span><span class="metric-value" style="color:#00c853">-0.7%</span></div>
+      <div class="metric"><span class="metric-label">45日</span><span class="metric-value" style="color:#00c853">-11.4%</span></div>
+      <div class="metric"><span class="metric-label">支撑</span><span class="metric-value">1.22</span></div>
+      <div class="metric"><span class="metric-label">压力</span><span class="metric-value">1.28</span></div>
+      <div class="metric"><span class="metric-label">回撤</span><span class="metric-value" style="color:#e53935">-1.5%</span></div>
+    </div>
+  </div>
+</div>
+<div class="stock-card" style="animation-delay:0.24s">
+  <div class="card-left">
+    <svg width="52" height="52" viewBox="0 0 52 52">
+  <circle cx="26.0" cy="26.0" r="22.0" fill="none" stroke="#1e2434" stroke-width="4"/>
+  <circle cx="26.0" cy="26.0" r="22.0" fill="none" stroke="#00c853" stroke-width="4"
+    stroke-dasharray="66.4 138.2" stroke-linecap="round"
+    transform="rotate(-90 26.0 26.0)"/>
+  <text x="26.0" y="25.0" text-anchor="middle" dominant-baseline="middle" fill="#00c853" font-size="18" font-weight="700" font-family="monospace">48</text>
+</svg>
+  </div>
+  <div class="card-main">
+    <div class="card-header">
+      <div class="stock-info">
+        <span class="stock-code">512880</span>
+        <span class="stock-name">证券ETF</span>
+      </div>
+      <span class="signal-badge" style="background:rgba(0,200,83,0.15);color:#00c853;border-color:rgba(0,200,83,0.4)">注意风险</span>
+    </div>
+    <div class="price-row">
+      <span class="price-main">1.11</span>
+      <span class="price-change" style="color:#00c853">-1.94%</span>
+      <span class="tag-chip">均线粘合</span>
+      <span class="tag-chip">量比 0.83</span>
+      <span class="tag-chip">RSI 51.1</span>
+    </div>
+    <div class="card-body">
+      <div class="bars-section"><div class="dim-bar"><span class="dim-label">价格动量</span><div class="dim-track"><div class="dim-fill" style="width:53%;background:#5c6bc0"></div></div><span class="dim-val">16/30</span></div><div class="dim-bar"><span class="dim-label">成交量</span><div class="dim-track"><div class="dim-fill" style="width:55%;background:#26a69a"></div></div><span class="dim-val">11/20</span></div><div class="dim-bar"><span class="dim-label">趋势结构</span><div class="dim-track"><div class="dim-fill" style="width:8%;background:#e53935"></div></div><span class="dim-val">2/25</span></div><div class="dim-bar"><span class="dim-label">相对强度</span><div class="dim-track"><div class="dim-fill" style="width:100%;background:#ab47bc"></div></div><span class="dim-val">15/15</span></div><div class="dim-bar"><span class="dim-label">风险控制</span><div class="dim-track"><div class="dim-fill" style="width:40%;background:#ff7043"></div></div><span class="dim-val">4/10</span></div></div>
+      <div class="chart-section">
+        <div class="radar-wrap"><svg width="88" height="88" viewBox="0 0 88 88" style="display:block">
+  <polygon points="44.0,34.8 52.8,41.1 49.4,51.5 38.6,51.5 35.2,41.1" fill="none" stroke="#2a3548" stroke-width="0.5"/><polygon points="44.0,25.5 61.6,38.3 54.9,59.0 33.1,59.0 26.4,38.3" fill="none" stroke="#2a3548" stroke-width="0.5"/><polygon points="44.0,16.0 70.6,35.3 60.5,66.7 27.5,66.7 17.4,35.3" fill="none" stroke="#2a3548" stroke-width="0.5"/>
+  <line x1="44.0" y1="44.0" x2="44.0" y2="16.0" stroke="#2a3548" stroke-width="0.5"/><line x1="44.0" y1="44.0" x2="70.6" y2="35.3" stroke="#2a3548" stroke-width="0.5"/><line x1="44.0" y1="44.0" x2="60.5" y2="66.7" stroke="#2a3548" stroke-width="0.5"/><line x1="44.0" y1="44.0" x2="27.5" y2="66.7" stroke="#2a3548" stroke-width="0.5"/><line x1="44.0" y1="44.0" x2="17.4" y2="35.3" stroke="#2a3548" stroke-width="0.5"/>
+  <polygon points="44.0,29.1 58.6,39.2 45.3,45.8 27.5,66.7 33.3,40.5" fill="#2962ff33" stroke="#2962ff" stroke-width="1.5"/>
+  <circle cx="44.0" cy="29.1" r="1.5" fill="#2962ff"/><circle cx="58.6" cy="39.2" r="1.5" fill="#2962ff"/><circle cx="45.3" cy="45.8" r="1.5" fill="#2962ff"/><circle cx="27.5" cy="66.7" r="1.5" fill="#2962ff"/><circle cx="33.3" cy="40.5" r="1.5" fill="#2962ff"/>
+  <text x="44.0" y="8.0" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">价格</text><text x="78.2" y="32.9" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">量能</text><text x="65.2" y="73.1" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">趋势</text><text x="22.8" y="73.1" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">强度</text><text x="9.8" y="32.9" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">风险</text>
+</svg></div>
+        <div class="spark-wrap"><svg width="130" height="38" viewBox="0 0 130 38" style="display:block">
+  <polygon points="0,38 0.0,31.1 4.5,30.6 9.0,30.2 13.4,30.6 17.9,33.4 22.4,34.7 26.9,38.0 31.4,37.1 35.9,34.3 40.3,36.5 44.8,28.4 49.3,22.6 53.8,20.4 58.3,20.6 62.8,27.4 67.2,9.8 71.7,9.8 76.2,14.1 80.7,5.9 85.2,15.0 89.7,11.5 94.1,10.9 98.6,0.0 103.1,5.6 107.6,4.6 112.1,3.5 116.6,11.5 121.0,14.1 125.5,9.6 130.0,14.3 130,38" fill="#e5393533"/>
+  <polyline points="0.0,31.1 4.5,30.6 9.0,30.2 13.4,30.6 17.9,33.4 22.4,34.7 26.9,38.0 31.4,37.1 35.9,34.3 40.3,36.5 44.8,28.4 49.3,22.6 53.8,20.4 58.3,20.6 62.8,27.4 67.2,9.8 71.7,9.8 76.2,14.1 80.7,5.9 85.2,15.0 89.7,11.5 94.1,10.9 98.6,0.0 103.1,5.6 107.6,4.6 112.1,3.5 116.6,11.5 121.0,14.1 125.5,9.6 130.0,14.3" fill="none" stroke="#e53935" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="130.0" cy="14.3" r="2.5" fill="#e53935"/>
+</svg></div>
+      </div>
+    </div>
+    <div class="key-metrics">
+      <div class="metric"><span class="metric-label">15日</span><span class="metric-value" style="color:#e53935">+5.7%</span></div>
+      <div class="metric"><span class="metric-label">45日</span><span class="metric-value" style="color:#e53935">+1.9%</span></div>
+      <div class="metric"><span class="metric-label">支撑</span><span class="metric-value">1.11</span></div>
+      <div class="metric"><span class="metric-label">压力</span><span class="metric-value">1.16</span></div>
+      <div class="metric"><span class="metric-label">回撤</span><span class="metric-value" style="color:#ffb74d">-5.6%</span></div>
+    </div>
+  </div>
+</div>
+<div class="stock-card" style="animation-delay:0.3s">
+  <div class="card-left">
+    <svg width="52" height="52" viewBox="0 0 52 52">
+  <circle cx="26.0" cy="26.0" r="22.0" fill="none" stroke="#1e2434" stroke-width="4"/>
+  <circle cx="26.0" cy="26.0" r="22.0" fill="none" stroke="#00c853" stroke-width="4"
+    stroke-dasharray="53.9 138.2" stroke-linecap="round"
+    transform="rotate(-90 26.0 26.0)"/>
+  <text x="26.0" y="25.0" text-anchor="middle" dominant-baseline="middle" fill="#00c853" font-size="18" font-weight="700" font-family="monospace">39</text>
+</svg>
+  </div>
+  <div class="card-main">
+    <div class="card-header">
+      <div class="stock-info">
+        <span class="stock-code">510500</span>
+        <span class="stock-name">中证500ETF</span>
+      </div>
+      <span class="signal-badge" style="background:rgba(0,200,83,0.15);color:#00c853;border-color:rgba(0,200,83,0.4)">注意风险</span>
+    </div>
+    <div class="price-row">
+      <span class="price-main">8.70</span>
+      <span class="price-change" style="color:#00c853">-1.20%</span>
+      <span class="tag-chip">均线粘合</span>
+      <span class="tag-chip">量比 1.24</span>
+      <span class="tag-chip">RSI 49.0</span>
+    </div>
+    <div class="card-body">
+      <div class="bars-section"><div class="dim-bar"><span class="dim-label">价格动量</span><div class="dim-track"><div class="dim-fill" style="width:37%;background:#5c6bc0"></div></div><span class="dim-val">11/30</span></div><div class="dim-bar"><span class="dim-label">成交量</span><div class="dim-track"><div class="dim-fill" style="width:50%;background:#26a69a"></div></div><span class="dim-val">10/20</span></div><div class="dim-bar"><span class="dim-label">趋势结构</span><div class="dim-track"><div class="dim-fill" style="width:8%;background:#e53935"></div></div><span class="dim-val">2/25</span></div><div class="dim-bar"><span class="dim-label">相对强度</span><div class="dim-track"><div class="dim-fill" style="width:80%;background:#ab47bc"></div></div><span class="dim-val">12/15</span></div><div class="dim-bar"><span class="dim-label">风险控制</span><div class="dim-track"><div class="dim-fill" style="width:40%;background:#ff7043"></div></div><span class="dim-val">4/10</span></div></div>
+      <div class="chart-section">
+        <div class="radar-wrap"><svg width="88" height="88" viewBox="0 0 88 88" style="display:block">
+  <polygon points="44.0,34.8 52.8,41.1 49.4,51.5 38.6,51.5 35.2,41.1" fill="none" stroke="#2a3548" stroke-width="0.5"/><polygon points="44.0,25.5 61.6,38.3 54.9,59.0 33.1,59.0 26.4,38.3" fill="none" stroke="#2a3548" stroke-width="0.5"/><polygon points="44.0,16.0 70.6,35.3 60.5,66.7 27.5,66.7 17.4,35.3" fill="none" stroke="#2a3548" stroke-width="0.5"/>
+  <line x1="44.0" y1="44.0" x2="44.0" y2="16.0" stroke="#2a3548" stroke-width="0.5"/><line x1="44.0" y1="44.0" x2="70.6" y2="35.3" stroke="#2a3548" stroke-width="0.5"/><line x1="44.0" y1="44.0" x2="60.5" y2="66.7" stroke="#2a3548" stroke-width="0.5"/><line x1="44.0" y1="44.0" x2="27.5" y2="66.7" stroke="#2a3548" stroke-width="0.5"/><line x1="44.0" y1="44.0" x2="17.4" y2="35.3" stroke="#2a3548" stroke-width="0.5"/>
+  <polygon points="44.0,33.7 57.3,39.7 45.3,45.8 30.8,62.1 33.3,40.5" fill="#2962ff33" stroke="#2962ff" stroke-width="1.5"/>
+  <circle cx="44.0" cy="33.7" r="1.5" fill="#2962ff"/><circle cx="57.3" cy="39.7" r="1.5" fill="#2962ff"/><circle cx="45.3" cy="45.8" r="1.5" fill="#2962ff"/><circle cx="30.8" cy="62.1" r="1.5" fill="#2962ff"/><circle cx="33.3" cy="40.5" r="1.5" fill="#2962ff"/>
+  <text x="44.0" y="8.0" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">价格</text><text x="78.2" y="32.9" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">量能</text><text x="65.2" y="73.1" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">趋势</text><text x="22.8" y="73.1" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">强度</text><text x="9.8" y="32.9" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">风险</text>
+</svg></div>
+        <div class="spark-wrap"><svg width="130" height="38" viewBox="0 0 130 38" style="display:block">
+  <polygon points="0,38 0.0,25.3 4.5,27.8 9.0,26.6 13.4,24.9 17.9,25.2 22.4,28.9 26.9,38.0 31.4,31.2 35.9,34.5 40.3,35.8 44.8,32.1 49.3,21.9 53.8,19.0 58.3,14.5 62.8,12.4 67.2,6.3 71.7,12.8 76.2,7.1 80.7,3.7 85.2,11.2 89.7,7.4 94.1,0.0 98.6,0.5 103.1,11.6 107.6,9.9 112.1,13.0 116.6,18.1 121.0,21.7 125.5,13.2 130.0,16.7 130,38" fill="#e5393533"/>
+  <polyline points="0.0,25.3 4.5,27.8 9.0,26.6 13.4,24.9 17.9,25.2 22.4,28.9 26.9,38.0 31.4,31.2 35.9,34.5 40.3,35.8 44.8,32.1 49.3,21.9 53.8,19.0 58.3,14.5 62.8,12.4 67.2,6.3 71.7,12.8 76.2,7.1 80.7,3.7 85.2,11.2 89.7,7.4 94.1,0.0 98.6,0.5 103.1,11.6 107.6,9.9 112.1,13.0 116.6,18.1 121.0,21.7 125.5,13.2 130.0,16.7" fill="none" stroke="#e53935" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="130.0" cy="16.7" r="2.5" fill="#e53935"/>
+</svg></div>
+      </div>
+    </div>
+    <div class="key-metrics">
+      <div class="metric"><span class="metric-label">15日</span><span class="metric-value" style="color:#00c853">-1.5%</span></div>
+      <div class="metric"><span class="metric-label">45日</span><span class="metric-value" style="color:#00c853">-0.8%</span></div>
+      <div class="metric"><span class="metric-label">支撑</span><span class="metric-value">8.55</span></div>
+      <div class="metric"><span class="metric-label">压力</span><span class="metric-value">8.81</span></div>
+      <div class="metric"><span class="metric-label">回撤</span><span class="metric-value" style="color:#ffb74d">-5.4%</span></div>
+    </div>
+  </div>
+</div>
+<div class="stock-card" style="animation-delay:0.36s">
+  <div class="card-left">
+    <svg width="52" height="52" viewBox="0 0 52 52">
+  <circle cx="26.0" cy="26.0" r="22.0" fill="none" stroke="#1e2434" stroke-width="4"/>
+  <circle cx="26.0" cy="26.0" r="22.0" fill="none" stroke="#00c853" stroke-width="4"
+    stroke-dasharray="53.9 138.2" stroke-linecap="round"
+    transform="rotate(-90 26.0 26.0)"/>
+  <text x="26.0" y="25.0" text-anchor="middle" dominant-baseline="middle" fill="#00c853" font-size="18" font-weight="700" font-family="monospace">39</text>
+</svg>
+  </div>
+  <div class="card-main">
+    <div class="card-header">
+      <div class="stock-info">
+        <span class="stock-code">513100</span>
+        <span class="stock-name">纳指ETF</span>
+      </div>
+      <span class="signal-badge" style="background:rgba(0,200,83,0.15);color:#00c853;border-color:rgba(0,200,83,0.4)">注意风险</span>
+    </div>
+    <div class="price-row">
+      <span class="price-main">2.17</span>
+      <span class="price-change" style="color:#e53935">+0.37%</span>
+      <span class="tag-chip">空头排列</span>
+      <span class="tag-chip">量比 0.6</span>
+      <span class="tag-chip">RSI 49.8</span>
+    </div>
+    <div class="card-body">
+      <div class="bars-section"><div class="dim-bar"><span class="dim-label">价格动量</span><div class="dim-track"><div class="dim-fill" style="width:37%;background:#5c6bc0"></div></div><span class="dim-val">11/30</span></div><div class="dim-bar"><span class="dim-label">成交量</span><div class="dim-track"><div class="dim-fill" style="width:45%;background:#26a69a"></div></div><span class="dim-val">9/20</span></div><div class="dim-bar"><span class="dim-label">趋势结构</span><div class="dim-track"><div class="dim-fill" style="width:8%;background:#e53935"></div></div><span class="dim-val">2/25</span></div><div class="dim-bar"><span class="dim-label">相对强度</span><div class="dim-track"><div class="dim-fill" style="width:80%;background:#ab47bc"></div></div><span class="dim-val">12/15</span></div><div class="dim-bar"><span class="dim-label">风险控制</span><div class="dim-track"><div class="dim-fill" style="width:50%;background:#ff7043"></div></div><span class="dim-val">5/10</span></div></div>
+      <div class="chart-section">
+        <div class="radar-wrap"><svg width="88" height="88" viewBox="0 0 88 88" style="display:block">
+  <polygon points="44.0,34.8 52.8,41.1 49.4,51.5 38.6,51.5 35.2,41.1" fill="none" stroke="#2a3548" stroke-width="0.5"/><polygon points="44.0,25.5 61.6,38.3 54.9,59.0 33.1,59.0 26.4,38.3" fill="none" stroke="#2a3548" stroke-width="0.5"/><polygon points="44.0,16.0 70.6,35.3 60.5,66.7 27.5,66.7 17.4,35.3" fill="none" stroke="#2a3548" stroke-width="0.5"/>
+  <line x1="44.0" y1="44.0" x2="44.0" y2="16.0" stroke="#2a3548" stroke-width="0.5"/><line x1="44.0" y1="44.0" x2="70.6" y2="35.3" stroke="#2a3548" stroke-width="0.5"/><line x1="44.0" y1="44.0" x2="60.5" y2="66.7" stroke="#2a3548" stroke-width="0.5"/><line x1="44.0" y1="44.0" x2="27.5" y2="66.7" stroke="#2a3548" stroke-width="0.5"/><line x1="44.0" y1="44.0" x2="17.4" y2="35.3" stroke="#2a3548" stroke-width="0.5"/>
+  <polygon points="44.0,33.7 56.0,40.1 45.3,45.8 30.8,62.1 30.7,39.7" fill="#2962ff33" stroke="#2962ff" stroke-width="1.5"/>
+  <circle cx="44.0" cy="33.7" r="1.5" fill="#2962ff"/><circle cx="56.0" cy="40.1" r="1.5" fill="#2962ff"/><circle cx="45.3" cy="45.8" r="1.5" fill="#2962ff"/><circle cx="30.8" cy="62.1" r="1.5" fill="#2962ff"/><circle cx="30.7" cy="39.7" r="1.5" fill="#2962ff"/>
+  <text x="44.0" y="8.0" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">价格</text><text x="78.2" y="32.9" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">量能</text><text x="65.2" y="73.1" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">趋势</text><text x="22.8" y="73.1" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">强度</text><text x="9.8" y="32.9" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">风险</text>
+</svg></div>
+        <div class="spark-wrap"><svg width="130" height="38" viewBox="0 0 130 38" style="display:block">
+  <polygon points="0,38 0.0,13.9 4.5,0.0 9.0,3.3 13.4,10.0 17.9,18.9 22.4,24.2 26.9,38.0 31.4,25.0 35.9,33.6 40.3,35.6 44.8,30.7 49.3,16.2 53.8,12.9 58.3,13.0 62.8,15.0 67.2,17.4 71.7,28.9 76.2,26.9 80.7,23.8 85.2,31.3 89.7,28.3 94.1,24.4 98.6,23.6 103.1,31.3 107.6,30.0 112.1,29.4 116.6,29.7 121.0,33.9 125.5,30.1 130.0,28.9 130,38" fill="#00c85333"/>
+  <polyline points="0.0,13.9 4.5,0.0 9.0,3.3 13.4,10.0 17.9,18.9 22.4,24.2 26.9,38.0 31.4,25.0 35.9,33.6 40.3,35.6 44.8,30.7 49.3,16.2 53.8,12.9 58.3,13.0 62.8,15.0 67.2,17.4 71.7,28.9 76.2,26.9 80.7,23.8 85.2,31.3 89.7,28.3 94.1,24.4 98.6,23.6 103.1,31.3 107.6,30.0 112.1,29.4 116.6,29.7 121.0,33.9 125.5,30.1 130.0,28.9" fill="none" stroke="#00c853" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="130.0" cy="28.9" r="2.5" fill="#00c853"/>
+</svg></div>
+      </div>
+    </div>
+    <div class="key-metrics">
+      <div class="metric"><span class="metric-label">15日</span><span class="metric-value" style="color:#00c853">-4.1%</span></div>
+      <div class="metric"><span class="metric-label">45日</span><span class="metric-value" style="color:#e53935">+5.8%</span></div>
+      <div class="metric"><span class="metric-label">支撑</span><span class="metric-value">2.14</span></div>
+      <div class="metric"><span class="metric-label">压力</span><span class="metric-value">2.17</span></div>
+      <div class="metric"><span class="metric-label">回撤</span><span class="metric-value" style="color:#e53935">-4.6%</span></div>
+    </div>
+  </div>
+</div>
+<div class="stock-card" style="animation-delay:0.42s">
+  <div class="card-left">
+    <svg width="52" height="52" viewBox="0 0 52 52">
+  <circle cx="26.0" cy="26.0" r="22.0" fill="none" stroke="#1e2434" stroke-width="4"/>
+  <circle cx="26.0" cy="26.0" r="22.0" fill="none" stroke="#00c853" stroke-width="4"
+    stroke-dasharray="49.8 138.2" stroke-linecap="round"
+    transform="rotate(-90 26.0 26.0)"/>
+  <text x="26.0" y="25.0" text-anchor="middle" dominant-baseline="middle" fill="#00c853" font-size="18" font-weight="700" font-family="monospace">36</text>
+</svg>
+  </div>
+  <div class="card-main">
+    <div class="card-header">
+      <div class="stock-info">
+        <span class="stock-code">159915</span>
+        <span class="stock-name">创业板ETF</span>
+      </div>
+      <span class="signal-badge" style="background:rgba(0,200,83,0.15);color:#00c853;border-color:rgba(0,200,83,0.4)">注意风险</span>
+    </div>
+    <div class="price-row">
+      <span class="price-main">3.86</span>
+      <span class="price-change" style="color:#00c853">-4.41%</span>
+      <span class="tag-chip">空头排列</span>
+      <span class="tag-chip">量比 1.1</span>
+      <span class="tag-chip">RSI 42.8</span>
+    </div>
+    <div class="card-body">
+      <div class="bars-section"><div class="dim-bar"><span class="dim-label">价格动量</span><div class="dim-track"><div class="dim-fill" style="width:47%;background:#5c6bc0"></div></div><span class="dim-val">14/30</span></div><div class="dim-bar"><span class="dim-label">成交量</span><div class="dim-track"><div class="dim-fill" style="width:40%;background:#26a69a"></div></div><span class="dim-val">8/20</span></div><div class="dim-bar"><span class="dim-label">趋势结构</span><div class="dim-track"><div class="dim-fill" style="width:0%;background:#e53935"></div></div><span class="dim-val">0/25</span></div><div class="dim-bar"><span class="dim-label">相对强度</span><div class="dim-track"><div class="dim-fill" style="width:80%;background:#ab47bc"></div></div><span class="dim-val">12/15</span></div><div class="dim-bar"><span class="dim-label">风险控制</span><div class="dim-track"><div class="dim-fill" style="width:20%;background:#ff7043"></div></div><span class="dim-val">2/10</span></div></div>
+      <div class="chart-section">
+        <div class="radar-wrap"><svg width="88" height="88" viewBox="0 0 88 88" style="display:block">
+  <polygon points="44.0,34.8 52.8,41.1 49.4,51.5 38.6,51.5 35.2,41.1" fill="none" stroke="#2a3548" stroke-width="0.5"/><polygon points="44.0,25.5 61.6,38.3 54.9,59.0 33.1,59.0 26.4,38.3" fill="none" stroke="#2a3548" stroke-width="0.5"/><polygon points="44.0,16.0 70.6,35.3 60.5,66.7 27.5,66.7 17.4,35.3" fill="none" stroke="#2a3548" stroke-width="0.5"/>
+  <line x1="44.0" y1="44.0" x2="44.0" y2="16.0" stroke="#2a3548" stroke-width="0.5"/><line x1="44.0" y1="44.0" x2="70.6" y2="35.3" stroke="#2a3548" stroke-width="0.5"/><line x1="44.0" y1="44.0" x2="60.5" y2="66.7" stroke="#2a3548" stroke-width="0.5"/><line x1="44.0" y1="44.0" x2="27.5" y2="66.7" stroke="#2a3548" stroke-width="0.5"/><line x1="44.0" y1="44.0" x2="17.4" y2="35.3" stroke="#2a3548" stroke-width="0.5"/>
+  <polygon points="44.0,30.9 54.7,40.5 44.0,44.0 30.8,62.1 38.7,42.3" fill="#2962ff33" stroke="#2962ff" stroke-width="1.5"/>
+  <circle cx="44.0" cy="30.9" r="1.5" fill="#2962ff"/><circle cx="54.7" cy="40.5" r="1.5" fill="#2962ff"/><circle cx="44.0" cy="44.0" r="1.5" fill="#2962ff"/><circle cx="30.8" cy="62.1" r="1.5" fill="#2962ff"/><circle cx="38.7" cy="42.3" r="1.5" fill="#2962ff"/>
+  <text x="44.0" y="8.0" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">价格</text><text x="78.2" y="32.9" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">量能</text><text x="65.2" y="73.1" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">趋势</text><text x="22.8" y="73.1" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">强度</text><text x="9.8" y="32.9" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">风险</text>
+</svg></div>
+        <div class="spark-wrap"><svg width="130" height="38" viewBox="0 0 130 38" style="display:block">
+  <polygon points="0,38 0.0,22.9 4.5,28.8 9.0,21.7 13.4,16.7 17.9,19.7 22.4,28.0 26.9,38.0 31.4,28.3 35.9,35.1 40.3,37.8 44.8,36.7 49.3,23.4 53.8,19.0 58.3,14.2 62.8,8.4 67.2,1.1 71.7,12.4 76.2,9.2 80.7,0.0 85.2,12.0 89.7,10.6 94.1,2.1 98.6,8.1 103.1,24.0 107.6,24.0 112.1,28.4 116.6,31.0 121.0,35.3 125.5,23.7 130.0,35.7 130,38" fill="#00c85333"/>
+  <polyline points="0.0,22.9 4.5,28.8 9.0,21.7 13.4,16.7 17.9,19.7 22.4,28.0 26.9,38.0 31.4,28.3 35.9,35.1 40.3,37.8 44.8,36.7 49.3,23.4 53.8,19.0 58.3,14.2 62.8,8.4 67.2,1.1 71.7,12.4 76.2,9.2 80.7,0.0 85.2,12.0 89.7,10.6 94.1,2.1 98.6,8.1 103.1,24.0 107.6,24.0 112.1,28.4 116.6,31.0 121.0,35.3 125.5,23.7 130.0,35.7" fill="none" stroke="#00c853" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="130.0" cy="35.7" r="2.5" fill="#00c853"/>
+</svg></div>
+      </div>
+    </div>
+    <div class="key-metrics">
+      <div class="metric"><span class="metric-label">15日</span><span class="metric-value" style="color:#00c853">-9.5%</span></div>
+      <div class="metric"><span class="metric-label">45日</span><span class="metric-value" style="color:#e53935">+0.4%</span></div>
+      <div class="metric"><span class="metric-label">支撑</span><span class="metric-value">3.86</span></div>
+      <div class="metric"><span class="metric-label">压力</span><span class="metric-value">4.04</span></div>
+      <div class="metric"><span class="metric-label">回撤</span><span class="metric-value" style="color:#00c853">-12.1%</span></div>
+    </div>
+  </div>
+</div>
+<div class="stock-card" style="animation-delay:0.48s">
+  <div class="card-left">
+    <svg width="52" height="52" viewBox="0 0 52 52">
+  <circle cx="26.0" cy="26.0" r="22.0" fill="none" stroke="#1e2434" stroke-width="4"/>
+  <circle cx="26.0" cy="26.0" r="22.0" fill="none" stroke="#00c853" stroke-width="4"
+    stroke-dasharray="48.4 138.2" stroke-linecap="round"
+    transform="rotate(-90 26.0 26.0)"/>
+  <text x="26.0" y="25.0" text-anchor="middle" dominant-baseline="middle" fill="#00c853" font-size="18" font-weight="700" font-family="monospace">35</text>
+</svg>
+  </div>
+  <div class="card-main">
+    <div class="card-header">
+      <div class="stock-info">
+        <span class="stock-code">510300</span>
+        <span class="stock-name">沪深300ETF</span>
+      </div>
+      <span class="signal-badge" style="background:rgba(0,200,83,0.15);color:#00c853;border-color:rgba(0,200,83,0.4)">注意风险</span>
+    </div>
+    <div class="price-row">
+      <span class="price-main">4.83</span>
+      <span class="price-change" style="color:#00c853">-1.77%</span>
+      <span class="tag-chip">空头排列</span>
+      <span class="tag-chip">量比 0.51</span>
+      <span class="tag-chip">RSI 45.9</span>
+    </div>
+    <div class="card-body">
+      <div class="bars-section"><div class="dim-bar"><span class="dim-label">价格动量</span><div class="dim-track"><div class="dim-fill" style="width:20%;background:#5c6bc0"></div></div><span class="dim-val">6/30</span></div><div class="dim-bar"><span class="dim-label">成交量</span><div class="dim-track"><div class="dim-fill" style="width:65%;background:#26a69a"></div></div><span class="dim-val">13/20</span></div><div class="dim-bar"><span class="dim-label">趋势结构</span><div class="dim-track"><div class="dim-fill" style="width:0%;background:#e53935"></div></div><span class="dim-val">0/25</span></div><div class="dim-bar"><span class="dim-label">相对强度</span><div class="dim-track"><div class="dim-fill" style="width:80%;background:#ab47bc"></div></div><span class="dim-val">12/15</span></div><div class="dim-bar"><span class="dim-label">风险控制</span><div class="dim-track"><div class="dim-fill" style="width:40%;background:#ff7043"></div></div><span class="dim-val">4/10</span></div></div>
+      <div class="chart-section">
+        <div class="radar-wrap"><svg width="88" height="88" viewBox="0 0 88 88" style="display:block">
+  <polygon points="44.0,34.8 52.8,41.1 49.4,51.5 38.6,51.5 35.2,41.1" fill="none" stroke="#2a3548" stroke-width="0.5"/><polygon points="44.0,25.5 61.6,38.3 54.9,59.0 33.1,59.0 26.4,38.3" fill="none" stroke="#2a3548" stroke-width="0.5"/><polygon points="44.0,16.0 70.6,35.3 60.5,66.7 27.5,66.7 17.4,35.3" fill="none" stroke="#2a3548" stroke-width="0.5"/>
+  <line x1="44.0" y1="44.0" x2="44.0" y2="16.0" stroke="#2a3548" stroke-width="0.5"/><line x1="44.0" y1="44.0" x2="70.6" y2="35.3" stroke="#2a3548" stroke-width="0.5"/><line x1="44.0" y1="44.0" x2="60.5" y2="66.7" stroke="#2a3548" stroke-width="0.5"/><line x1="44.0" y1="44.0" x2="27.5" y2="66.7" stroke="#2a3548" stroke-width="0.5"/><line x1="44.0" y1="44.0" x2="17.4" y2="35.3" stroke="#2a3548" stroke-width="0.5"/>
+  <polygon points="44.0,38.4 61.3,38.4 44.0,44.0 30.8,62.1 33.3,40.5" fill="#2962ff33" stroke="#2962ff" stroke-width="1.5"/>
+  <circle cx="44.0" cy="38.4" r="1.5" fill="#2962ff"/><circle cx="61.3" cy="38.4" r="1.5" fill="#2962ff"/><circle cx="44.0" cy="44.0" r="1.5" fill="#2962ff"/><circle cx="30.8" cy="62.1" r="1.5" fill="#2962ff"/><circle cx="33.3" cy="40.5" r="1.5" fill="#2962ff"/>
+  <text x="44.0" y="8.0" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">价格</text><text x="78.2" y="32.9" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">量能</text><text x="65.2" y="73.1" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">趋势</text><text x="22.8" y="73.1" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">强度</text><text x="9.8" y="32.9" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">风险</text>
+</svg></div>
+        <div class="spark-wrap"><svg width="130" height="38" viewBox="0 0 130 38" style="display:block">
+  <polygon points="0,38 0.0,18.1 4.5,24.1 9.0,16.7 13.4,13.6 17.9,17.8 22.4,26.8 26.9,38.0 31.4,28.6 35.9,33.1 40.3,36.7 44.8,29.5 49.3,18.6 53.8,19.5 58.3,14.4 62.8,11.6 67.2,0.0 71.7,16.1 76.2,13.4 80.7,4.6 85.2,19.9 89.7,14.3 94.1,7.8 98.6,10.0 103.1,26.0 107.6,23.2 112.1,23.1 116.6,28.6 121.0,31.6 125.5,18.9 130.0,28.3 130,38" fill="#00c85333"/>
+  <polyline points="0.0,18.1 4.5,24.1 9.0,16.7 13.4,13.6 17.9,17.8 22.4,26.8 26.9,38.0 31.4,28.6 35.9,33.1 40.3,36.7 44.8,29.5 49.3,18.6 53.8,19.5 58.3,14.4 62.8,11.6 67.2,0.0 71.7,16.1 76.2,13.4 80.7,4.6 85.2,19.9 89.7,14.3 94.1,7.8 98.6,10.0 103.1,26.0 107.6,23.2 112.1,23.1 116.6,28.6 121.0,31.6 125.5,18.9 130.0,28.3" fill="none" stroke="#00c853" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="130.0" cy="28.3" r="2.5" fill="#00c853"/>
+</svg></div>
+      </div>
+    </div>
+    <div class="key-metrics">
+      <div class="metric"><span class="metric-label">15日</span><span class="metric-value" style="color:#00c853">-3.1%</span></div>
+      <div class="metric"><span class="metric-label">45日</span><span class="metric-value" style="color:#00c853">-1.7%</span></div>
+      <div class="metric"><span class="metric-label">支撑</span><span class="metric-value">4.8</span></div>
+      <div class="metric"><span class="metric-label">压力</span><span class="metric-value">4.92</span></div>
+      <div class="metric"><span class="metric-label">回撤</span><span class="metric-value" style="color:#ffb74d">-5.1%</span></div>
+    </div>
+  </div>
+</div>
+<div class="stock-card" style="animation-delay:0.54s">
+  <div class="card-left">
+    <svg width="52" height="52" viewBox="0 0 52 52">
+  <circle cx="26.0" cy="26.0" r="22.0" fill="none" stroke="#1e2434" stroke-width="4"/>
+  <circle cx="26.0" cy="26.0" r="22.0" fill="none" stroke="#00c853" stroke-width="4"
+    stroke-dasharray="48.4 138.2" stroke-linecap="round"
+    transform="rotate(-90 26.0 26.0)"/>
+  <text x="26.0" y="25.0" text-anchor="middle" dominant-baseline="middle" fill="#00c853" font-size="18" font-weight="700" font-family="monospace">35</text>
+</svg>
+  </div>
+  <div class="card-main">
+    <div class="card-header">
+      <div class="stock-info">
+        <span class="stock-code">159949</span>
+        <span class="stock-name">创业板50ETF</span>
+      </div>
+      <span class="signal-badge" style="background:rgba(0,200,83,0.15);color:#00c853;border-color:rgba(0,200,83,0.4)">注意风险</span>
+    </div>
+    <div class="price-row">
+      <span class="price-main">1.83</span>
+      <span class="price-change" style="color:#00c853">-5.19%</span>
+      <span class="tag-chip">空头排列</span>
+      <span class="tag-chip">量比 1.09</span>
+      <span class="tag-chip">RSI 41.8</span>
+    </div>
+    <div class="card-body">
+      <div class="bars-section"><div class="dim-bar"><span class="dim-label">价格动量</span><div class="dim-track"><div class="dim-fill" style="width:40%;background:#5c6bc0"></div></div><span class="dim-val">12/30</span></div><div class="dim-bar"><span class="dim-label">成交量</span><div class="dim-track"><div class="dim-fill" style="width:55%;background:#26a69a"></div></div><span class="dim-val">11/20</span></div><div class="dim-bar"><span class="dim-label">趋势结构</span><div class="dim-track"><div class="dim-fill" style="width:0%;background:#e53935"></div></div><span class="dim-val">0/25</span></div><div class="dim-bar"><span class="dim-label">相对强度</span><div class="dim-track"><div class="dim-fill" style="width:67%;background:#ab47bc"></div></div><span class="dim-val">10/15</span></div><div class="dim-bar"><span class="dim-label">风险控制</span><div class="dim-track"><div class="dim-fill" style="width:20%;background:#ff7043"></div></div><span class="dim-val">2/10</span></div></div>
+      <div class="chart-section">
+        <div class="radar-wrap"><svg width="88" height="88" viewBox="0 0 88 88" style="display:block">
+  <polygon points="44.0,34.8 52.8,41.1 49.4,51.5 38.6,51.5 35.2,41.1" fill="none" stroke="#2a3548" stroke-width="0.5"/><polygon points="44.0,25.5 61.6,38.3 54.9,59.0 33.1,59.0 26.4,38.3" fill="none" stroke="#2a3548" stroke-width="0.5"/><polygon points="44.0,16.0 70.6,35.3 60.5,66.7 27.5,66.7 17.4,35.3" fill="none" stroke="#2a3548" stroke-width="0.5"/>
+  <line x1="44.0" y1="44.0" x2="44.0" y2="16.0" stroke="#2a3548" stroke-width="0.5"/><line x1="44.0" y1="44.0" x2="70.6" y2="35.3" stroke="#2a3548" stroke-width="0.5"/><line x1="44.0" y1="44.0" x2="60.5" y2="66.7" stroke="#2a3548" stroke-width="0.5"/><line x1="44.0" y1="44.0" x2="27.5" y2="66.7" stroke="#2a3548" stroke-width="0.5"/><line x1="44.0" y1="44.0" x2="17.4" y2="35.3" stroke="#2a3548" stroke-width="0.5"/>
+  <polygon points="44.0,32.8 58.6,39.2 44.0,44.0 33.0,59.1 38.7,42.3" fill="#2962ff33" stroke="#2962ff" stroke-width="1.5"/>
+  <circle cx="44.0" cy="32.8" r="1.5" fill="#2962ff"/><circle cx="58.6" cy="39.2" r="1.5" fill="#2962ff"/><circle cx="44.0" cy="44.0" r="1.5" fill="#2962ff"/><circle cx="33.0" cy="59.1" r="1.5" fill="#2962ff"/><circle cx="38.7" cy="42.3" r="1.5" fill="#2962ff"/>
+  <text x="44.0" y="8.0" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">价格</text><text x="78.2" y="32.9" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">量能</text><text x="65.2" y="73.1" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">趋势</text><text x="22.8" y="73.1" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">强度</text><text x="9.8" y="32.9" text-anchor="middle" dominant-baseline="middle" fill="#6b7689" font-size="8">风险</text>
+</svg></div>
+        <div class="spark-wrap"><svg width="130" height="38" viewBox="0 0 130 38" style="display:block">
+  <polygon points="0,38 0.0,19.7 4.5,25.9 9.0,17.8 13.4,12.9 17.9,15.5 22.4,24.7 26.9,34.6 31.4,24.5 35.9,32.0 40.3,35.1 44.8,34.2 49.3,20.8 53.8,17.0 58.3,13.5 62.8,7.5 67.2,0.4 71.7,11.6 76.2,8.7 80.7,0.0 85.2,12.8 89.7,11.8 94.1,3.6 98.6,11.0 103.1,26.7 107.6,26.4 112.1,31.3 116.6,33.1 121.0,37.2 125.5,24.9 130.0,38.0 130,38" fill="#00c85333"/>
+  <polyline points="0.0,19.7 4.5,25.9 9.0,17.8 13.4,12.9 17.9,15.5 22.4,24.7 26.9,34.6 31.4,24.5 35.9,32.0 40.3,35.1 44.8,34.2 49.3,20.8 53.8,17.0 58.3,13.5 62.8,7.5 67.2,0.4 71.7,11.6 76.2,8.7 80.7,0.0 85.2,12.8 89.7,11.8 94.1,3.6 98.6,11.0 103.1,26.7 107.6,26.4 112.1,31.3 116.6,33.1 121.0,37.2 125.5,24.9 130.0,38.0" fill="none" stroke="#00c853" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="130.0" cy="38.0" r="2.5" fill="#00c853"/>
+</svg></div>
+      </div>
+    </div>
+    <div class="key-metrics">
+      <div class="metric"><span class="metric-label">15日</span><span class="metric-value" style="color:#00c853">-11.3%</span></div>
+      <div class="metric"><span class="metric-label">45日</span><span class="metric-value" style="color:#00c853">-0.7%</span></div>
+      <div class="metric"><span class="metric-label">支撑</span><span class="metric-value">1.83</span></div>
+      <div class="metric"><span class="metric-label">压力</span><span class="metric-value">1.93</span></div>
+      <div class="metric"><span class="metric-label">回撤</span><span class="metric-value" style="color:#00c853">-13.7%</span></div>
+    </div>
+  </div>
+</div>
+  </div>
+</div>
+
+<!-- Tweet Box -->
+<div class="tweet-box">
+  <div class="tweet-title">
+    <span>推文摘要</span>
+    <button class="copy-btn" onclick="copyTweet()">复制</button>
+  </div>
+  <div class="tweet-content" id="tweet-content">量化动量选股 2026-07-10 (最近交易日) 收盘扫描
+股票10只 + ETF10只
+
+【股票 Top 3】
+ 1. 中芯国际(688981) 83分 强烈买入  现价163.02
+ 2. 长江电力(600900) 72分 买入  现价28.03
+ 3. 美的集团(000333) 67分 持有  现价78.99
+
+【ETF Top 3】
+ 1. 养殖ETF(159865) 64分 持有  现价0.52
+ 2. 科创50ETF(588000) 62分 持有  现价2.21
+ 3. 上证50ETF(510050) 54分 观望  现价3.06
+
+买入信号 2只
+风险预警 4只
+
+市场偏弱 控制仓位注意风险
+
+量化模型仅供参考 不构成投资建议</div>
+</div>
+
+<!-- Footer -->
+<div class="footer">
+  量化模型仅供参考 不构成投资建议<br>
+  CTAAgents 动量选股体系 v4.0 | 数据源: 腾讯自选股 | 2026-07-12 19:32
+</div>
+
+</div>
+
+<script>
+function copyTweet() {
+  const text = document.getElementById('tweet-content').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.querySelector('.copy-btn');
+    const orig = btn.textContent;
+    btn.textContent = '已复制';
+    btn.style.background = 'rgba(0,200,83,0.15)';
+    btn.style.color = '#00c853';
+    setTimeout(() => {
+      btn.textContent = orig;
+      btn.style.background = '';
+      btn.style.color = '';
+    }, 2000);
+  });
+}
+
+// 进度条动画
+document.querySelectorAll('.dim-fill').forEach(el => {
+  const w = el.style.width;
+  el.style.width = '0';
+  setTimeout(() => { el.style.width = w; }, 100);
+});
+</script>
+</body>
+</html>
